@@ -16,43 +16,12 @@ export default {
         if (url.pathname === "/") {
             return fetchAsset("index.html");
           }
-      
-          // Serve static assets like CSS, JS, images, etc.
           try {
             const filePath = url.pathname.slice(1); // Remove leading slash
             return fetchAsset(filePath);
-          } catch (err) {
-            return new Response("Not Found", { status: 404 });
+          } catch (error) {
+              // If the file is not found, return a 404 response
           }
-        },
-      };
-      
-      // Helper function to fetch assets from the Worker environment
-      async function fetchAsset(path) {
-        const contentType = getContentType(path);
-      
-        try {
-          const file = await fetch(`https://pastebin.peme969.dev/${path}`); // Replace with your asset URL
-          return new Response(await file.arrayBuffer(), {
-            headers: { "Content-Type": contentType },
-          });
-        } catch (err) {
-          return new Response("File not found.", { status: 404 });
-        }
-      }
-      
-      // Determine content type based on file extension
-      function getContentType(path) {
-        if (path.endsWith(".html")) return "text/html";
-        if (path.endsWith(".css")) return "text/css";
-        if (path.endsWith(".js")) return "application/javascript";
-        if (path.endsWith(".png")) return "image/png";
-        if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
-        if (path.endsWith(".svg")) return "image/svg+xml";
-        if (path.endsWith(".ico")) return "image/x-icon";
-        if (path.endsWith(".json")) return "application/json";
-        return "application/octet-stream";
-      }
         if (path.startsWith("/api/")) {
             const authHeader = request.headers.get("Authorization");
             if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
@@ -167,3 +136,30 @@ export default {
         return new Response(text, { status: 200, headers: { "Content-Type": "text/plain" } });
     }
 };
+
+// Helper function to fetch assets from the Worker environment
+async function fetchAsset(path) {
+    const contentType = getContentType(path);
+  
+    try {
+      const file = await fetch(`https://example.com/${path}`); // Replace with your asset URL
+      return new Response(await file.arrayBuffer(), {
+        headers: { "Content-Type": contentType },
+      });
+    } catch (err) {
+      return new Response("File not found.", { status: 404 });
+    }
+  }
+  
+  // Determine content type based on file extension
+  function getContentType(path) {
+    if (path.endsWith(".html")) return "text/html";
+    if (path.endsWith(".css")) return "text/css";
+    if (path.endsWith(".js")) return "application/javascript";
+    if (path.endsWith(".png")) return "image/png";
+    if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+    if (path.endsWith(".svg")) return "image/svg+xml";
+    if (path.endsWith(".ico")) return "image/x-icon";
+    if (path.endsWith(".json")) return "application/json";
+    return "application/octet-stream";
+  }
