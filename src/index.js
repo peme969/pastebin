@@ -142,7 +142,7 @@ async function fetchAsset(path) {
     const contentType = getContentType(path);
   
     try {
-      const file = await fetch(`https://example.com/${path}`); // Replace with your asset URL
+      const file = await fetch(`https://link.peme969.dev/${path}`); // Replace with your asset URL
       return new Response(await file.arrayBuffer(), {
         headers: { "Content-Type": contentType },
       });
