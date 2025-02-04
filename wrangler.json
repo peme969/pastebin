@@ -9,7 +9,7 @@
   },
   "site": {
     "bucket": "./"
-  }
+  },
   "kv_namespaces": [
     {
       "binding": "Pastebin",
