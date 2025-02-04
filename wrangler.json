@@ -7,9 +7,6 @@
   "observability": {
     "enabled": true
   },
-  "site": {
-    "bucket": "./src"
-  },
   "kv_namespaces": [
     {
       "binding": "Pastebin",
