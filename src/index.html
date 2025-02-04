@@ -54,19 +54,19 @@
     height:100%;
     position: relative;
   }
-  .container {
+  .create-form {
     display:flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     transform: skew(-3deg);
   }
-  .container > * {
+  .create-form > * {
     margin-top:10px;
   }
- .container > input[type="text"],
-  .container > input[type="password"] {
-    width:20%;
+input[type="text"],
+input[type="password"] {
+    width:145%;
     background-color: #313131;
     border: solid 3px #313131;
     padding: 12px;
@@ -84,7 +84,7 @@
     outline: none;
   }
   #create {
-    width:22%;
+    width:156%;
     color: #ffffff;
     background-color: var(--dynamic-text);
     padding: 15px;
@@ -102,7 +102,7 @@
     background-color: #83a0a0;
   }
   textarea {
-    width: 20%;
+    width: 145%;
     background-color: #313131;
     max-width: 400px;
     height: 150px;
@@ -128,7 +128,6 @@ textarea::placeholder {
 }
 textarea:focus {
     border-color:var(--dynamic-text);
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
 }
   body {
     transition: all 0.2s ease-in-out;
@@ -238,10 +237,12 @@ flex-direction: column-reverse;
             <div class="navbar">
 
             </div>
-            <input type="password" placeholder="SECRET" id="secret-input">
-            <input type="text" placeholder="Slug (leave empty for a random one)" id="slug-input">
-            <textarea placeholder="Pastebin content here..."></textarea>
-            <button id="create">Create</button>
+            <form class='create-form'>
+            <input type="password" placeholder="SECRET" id="secret-input" required>
+            <input type="text" placeholder="Slug (leave empty for a random one)" id="slug-input" required>
+            <textarea placeholder="Pastebin content here..." required></textarea>
+            <input type="submit" id="create" value="Create"></input>
+        </form>
             <div class="result-container">
                 <p id="result"></p>
             </div>
@@ -258,6 +259,10 @@ flex-direction: column-reverse;
         </p>
     </div>
         <script>
+            $('.create-form').submit(function(e) {
+                e.preventDefault();
+
+            })
             $('#mail').click(function() {
                 const email = "me@peme969.dev";
                 const subject = "Pastebin Key Request";

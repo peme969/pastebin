@@ -19,13 +19,21 @@ export default {
                 headers: { 'Content-Type': 'text/html' },
               });
           }
-          
+        
         if (path.startsWith("/api/")) {
             const authHeader = request.headers.get("Authorization");
             if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
                 return new Response("Unauthorized", { status: 401 });
             }
-
+            if (pathname === "/api/auth") {
+                const authHeader = request.headers.get("Authorization");
+                if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
+                    return new Response("Unauthorized", { status: 401 });
+                }
+                else {
+                    return new Response("Authorized", { status: 200 });
+                }
+            }
             if (path.startsWith("/api/create") && method === "POST") {
                 const { text, password = null, expiration = null, slug = null } = await request.json();
                 
