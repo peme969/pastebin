@@ -8,7 +8,7 @@
     "enabled": true
   },
   "site": {
-    "bucket": "./"
+    "bucket": "./src"
   },
   "kv_namespaces": [
     {
