@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+        <link rel="manifest" href="/site.webmanifest">
+        <meta name="title" content="Peme969’s Pastebin">
+        <meta name="description" content="Peme969’s Personal Pastebin 
+        Email me for a temp key 🔑">
+        <meta name="keywords" content="bio, personal pastebin, peme969, peme969’s site, blog, cool, epic, fun, github, cloudflare, cloudflare-pages, cloudflare-workers, link-shortener">
+        <meta name="robots" content="index, follow">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="language" content="English">
+        <meta name="revisit-after" content="10 days">
+        <meta name="author" content="Peme969">
+        <meta name="title" content="Peme969’s Personal Pastebin" />
+        <meta name="description" content="Peme969’s Personal Pastebin.
+        Email me for a temp key 🔑" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://link.peme969.dev" />
+        <meta property="og:title" content="Peme969’s Personal Pastebin" />
+        <meta property="og:description" content="Peme969’s Personal Pastebin.
+        Email me for a temp key 🔑" />
+        <meta property="og:image" content="/favicon.ico" />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://link.peme969.dev" />
+        <meta property="twitter:title" content="Peme969’s Personal Pastebin" />
+        <meta property="twitter:description" content="Peme969’s Personal Pastebin.
+        Email me for a temp key 🔑" />
+        <meta property="twitter:image" content="/favicon.ico" />
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>My Pastebin 🌙🌌</title>
+        <link rel="stylesheet" href="style.css" />
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </head>
+    <body>
+        <select class="palette-dropdown" id="palette-selector">
+            <option value="DarkSky">Dark Sky</option>
+            <option value="DeepOcean">DeepOcean</option>
+        </select>
+        <h1>Peme969's Pastebin</h1>
+        <div class="container">
+            <div class="navbar">
+
+            </div>
+            <input type="password" placeholder="SECRET" id="secret-input">
+            <input type="text" placeholder="Slug (leave empty for a random one)" id="slug-input">
+            <textarea placeholder="Pastebin content here..."></textarea>
+            <button id="create">Create</button>
+            <div class="result-container">
+                <p id="result"></p>
+            </div>
+        </div>
+    <div class="check">
+        <label for="toggle" class="keyer">
+            <svg id='key' xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M11 18Zm-7 2q-.425 0-.713-.288T3 19v-1.8q0-.85.438-1.563T4.6 14.55q1.55-.775 3.15-1.163T11 13q.5 0 1 .038t1 .112q-.05.525.025 1.05t.25 1.025q-.575-.125-1.137-.175T11 15q-1.4 0-2.775.338T5.5 16.35q-.225.125-.363.35T5 17.2v.8h10.5v2H4Zm14.65 2.65l-.85-.85q-.15-.15-.225-.338t-.075-.387V16.85q-1.1-.325-1.8-1.238T15 13.5q0-1.45 1.025-2.475T18.5 10q1.45 0 2.475 1.025T22 13.5q0 1.125-.638 2t-1.612 1.25l.9.9q.15.15.15.35t-.15.35l-.8.8q-.15.15-.15.35t.15.35l.8.8q.15.15.15.35t-.15.35l-1.3 1.3q-.15.15-.35.15t-.35-.15ZM18.5 14q.425 0 .713-.288T19.5 13q0-.425-.288-.713T18.5 12q-.425 0-.713.288T17.5 13q0 .425.288.713T18.5 14ZM11 12q-1.65 0-2.825-1.175T7 8q0-1.65 1.175-2.825T11 4q1.65 0 2.825 1.175T15 8q0 1.65-1.175 2.825T11 12Zm0-2q.825 0 1.413-.588T13 8q0-.825-.588-1.413T11 6q-.825 0-1.413.588T9 8q0 .825.588 1.413T11 10Zm0-2Z"/>
+            </svg>
+        </label>
+        <input type="checkbox" id="toggle" hidden>
+        <p class="content">
+            Want to get the *secret* key? (🔑 expires after 24 hours (might vary)) Email me! <img id="mail" src="mail.svg"/>
+        </p>
+    </div>
+        <script>
+            $('#mail').click(function() {
+                const email = "me@peme969.dev";
+                const subject = "Pastebin Key Request";
+                const body = `I would like a pastebin key because [enter reason here].%0A%0A` +
+                            `Methods of Verification:%0A` +
+                            `Github: Add 'key select' to your github bio and root README ` +
+                            `({github_username}/{github_username}) and attach the link here.%0A%0A` +
+                            `I, Peme969 will be asking you for more verifications in a follow-up email.`;
+                const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${body}`;
+                console.log(mailtoLink);
+                window.location.href = mailtoLink;
+            });
+
+            document.getElementById("palette-selector").addEventListener("change", function() {
+                let selectedPalette = this.value;
+                document.body.style.background = getComputedStyle(document.documentElement).getPropertyValue(`--${selectedPalette}-bg`);
+                document.body.style.color = getComputedStyle(document.documentElement).getPropertyValue(`--${selectedPalette}-text`);
+            });
+        </script>
+       </div>
+    </body>
+    <script src="run.js"></script>
+</html>
