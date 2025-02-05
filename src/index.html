@@ -234,7 +234,6 @@ flex-direction: column-reverse;
   width: 25%;
   background-color: #313131;
   margin-top: 30px;
-  height:130px;
   transform: skew(-3deg);
   margin-left: -29px;
 }
@@ -252,6 +251,21 @@ flex-direction: column-reverse;
     font-style: normal;
     font-style: italic;
 }
+#result {
+  font-family: "JetBrains Mono", serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    margin-top:0;
+    text-align:center;
+    width:100%;
+}
+.good {
+ color:#41ff41;
+}
+.bad {
+  color: red;
+}
         </style>
     </head>
     <body>
@@ -266,13 +280,13 @@ flex-direction: column-reverse;
             </div>
             <form class='create-form'>
             <input type="password" placeholder="SECRET" id="secret-input" required>
-            <input type="text" placeholder="Slug (leave empty for a random one)" id="slug-input" required>
+            <input type="text" placeholder="Slug (optional)" id="slug-input" required>
             <textarea placeholder="Pastebin content here..." required id="paste-content"></textarea>
             <input type="submit" id="create" value="Create"></input>
         </form>
             <div class="result-container">
               <h3 id="had">API Response:</h3>
-                <p id="result"></p>
+                <p id="result">Submit the Form to view the API's response...</p>
             </div>
         </div>
     <div class="check">
@@ -292,8 +306,6 @@ flex-direction: column-reverse;
                 const secret = $("#secret-input").val();
                 const slug = $("#slug-input").val();
                 const content = $("#paste-content").val();
-                console.log({secret, slug, content});
-                
                 $.ajax({
                     url: 'https://paste.peme969.dev/api/auth',
                     type: 'POST',
@@ -301,13 +313,32 @@ flex-direction: column-reverse;
                         "Authorization": "Bearer " + secret,
                         "Content-Type": "application/json"
                     },
-                    success: function(response) {
-                        $('#result').text(response);
+                    success: function(response, status, xhr) {
+                        if (xhr.status === 200) { // 200 OK - Authorized
+                            $('#result').text("Authorized! Creating slug...");
+                            $('#result').addClass("good").removeClass("bad");
+                            const data = {
+                                "text": content,
+                                "slug": slug
+                            }
+                            if (slug === "" || slug === null) {
+                                data = {
+                                    "text": content,
+                                }
+                            }
+                        }
                     },
                     error: function(xhr, status, error) {
-                        $('#result').text(error);  
+                        if (xhr.status === 401) { // 401 Unauthorized
+                            $('#result').text("Unauthorized! Wrong Secret Key. Email me for a temp (might be permanent...) key 🔑");
+                        } else {
+                            $('#result').text("API Error... Please try again. (better, email me: me@peme969.dev)");
+                        }
+
+                        $('#result').addClass("bad").removeClass("good");
                     }
-                });
+                  });
+
             })
             $('#mail').click(function() {
                 const email = "me@peme969.dev";
