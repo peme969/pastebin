@@ -28,7 +28,7 @@ export default {
             if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
                 return new Response("Unauthorized", { status: 401 , headers: { "Content-Type": "application/json", ...getCORSHeaders()} });
             }
-            if (pathname === "/api/auth") {
+            if (url.pathname === "/api/auth") {
                 const authHeader = request.headers.get("Authorization");
                 if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
                     return new Response("Unauthorized", { status: 401, headers: { "Content-Type": "application/json",...getCORSHeaders()} });
