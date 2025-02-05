@@ -6,7 +6,9 @@ export default {
         const method = request.method;
         const PASTEBIN_KV = env.Pastebin;
         const API_SECRET = env.API_KEY; 
-
+                if (method === "OPTIONS") {
+                    return new Response(null, { status: 204, headers: getCORSHeaders() });
+                }        
         const generateRandomSlug = () => {
             return [...Array(6)].map(() => Math.random().toString(36)[2]).join('');
         };
@@ -16,22 +18,23 @@ export default {
         //}
         if (url.pathname === "/") {
             return new Response(html, {
-                headers: { 'Content-Type': 'text/html' },
+                headers: { 'Content-Type': 'text/html',...getCORSHeaders() },
+                
               });
           }
         
         if (path.startsWith("/api/")) {
             const authHeader = request.headers.get("Authorization");
             if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
-                return new Response("Unauthorized", { status: 401 });
+                return new Response("Unauthorized", { status: 401 , headers: { "Content-Type": "application/json", ...getCORSHeaders()} });
             }
             if (pathname === "/api/auth") {
                 const authHeader = request.headers.get("Authorization");
                 if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
-                    return new Response("Unauthorized", { status: 401 });
+                    return new Response("Unauthorized", { status: 401, headers: { "Content-Type": "application/json",...getCORSHeaders()} });
                 }
                 else {
-                    return new Response("Authorized", { status: 200 });
+                    return new Response("Authorized", { status: 200, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
                 }
             }
             if (path.startsWith("/api/create") && method === "POST") {
@@ -48,7 +51,7 @@ export default {
 
                 return new Response(
                     JSON.stringify({ success: true, slug: generatedSlug }),
-                    { status: 200, headers: { "Content-Type": "application/json" } }
+                    { status: 200, headers: { "Content-Type": "application/json", headers: { "Content-Type": "application/json",...getCORSHeaders() } } }
                 );
             }
 
@@ -57,7 +60,7 @@ export default {
                 if (!slug) return new Response("Missing slug", { status: 400 });
 
                 await PASTEBIN_KV.delete(slug);
-                return new Response(JSON.stringify({ success: true }), { status: 200 });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
             }
 
             if (path.startsWith("/api/view") && method === "GET") {
@@ -80,29 +83,29 @@ export default {
 
                     return new Response(
                         JSON.stringify(pastes.filter((paste) => paste !== null)),
-                        { status: 200, headers: { "Content-Type": "application/json" } }
+                        { status: 200, headers: { "Content-Type": "application/json", headers: { "Content-Type": "application/json",...getCORSHeaders() } } }
                     );
                 } else {
                     const paste = await PASTEBIN_KV.get(slug, { type: "json" });
-                    if (!paste) return new Response("Paste not found", { status: 404 });
+                    if (!paste) return new Response("Paste not found", { status: 404, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
 
                     // Check if the paste is expired
                     if (paste.metadata.expiration && Date.now() > paste.metadata.expiration) {
                         await PASTEBIN_KV.delete(slug);
-                        return new Response("Paste expired and deleted", { status: 410 });
+                        return new Response("Paste expired and deleted", { status: 410, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
                     }
 
-                    return new Response(JSON.stringify(paste), { status: 200 });
+                    return new Response(JSON.stringify(paste), { status: 200, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
                 }
             }
         }
 
         // Viewing a paste
         const slug = path.slice(1);
-        const paste = await PASTEBIN_KV.get(slug, { type: "json" });
+        const paste = await PASTEBIN_KV.get(slug, { type: "json", headers: { "Content-Type": "application/json",...getCORSHeaders() } });
 
         if (!paste) {
-            return new Response("Paste not found", { status: 404 });
+            return new Response("Paste not found", { status: 404, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
         }
 
         const { text, metadata } = paste;
@@ -110,7 +113,7 @@ export default {
         // Check if the paste is expired
         if (metadata.expiration && Date.now() > metadata.expiration) {
             await PASTEBIN_KV.delete(slug);
-            return new Response("Paste expired and deleted", { status: 410 });
+            return new Response("Paste expired and deleted", { status: 410, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
         }
 
         // Password protection
@@ -134,11 +137,19 @@ export default {
                         }
                     </script>
                     </body></html>`,
-                    { headers: { "Content-Type": "text/html" } }
+                    { headers: { "Content-Type": "text/html", headers: { "Content-Type": "application/json",...getCORSHeaders() } } }
                 );
             }
         }
 
-        return new Response(text, { status: 200, headers: { "Content-Type": "text/plain" } });
+        return new Response(text, { status: 200, headers: { "Content-Type": "text/plain", headers: { "Content-Type": "application/json",...getCORSHeaders() } } });
     }
 };
+function getCORSHeaders() {
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type",
+        "Access-Control-Max-Age": "86400",
+    };
+}

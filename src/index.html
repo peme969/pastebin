@@ -240,7 +240,7 @@ flex-direction: column-reverse;
             <form class='create-form'>
             <input type="password" placeholder="SECRET" id="secret-input" required>
             <input type="text" placeholder="Slug (leave empty for a random one)" id="slug-input" required>
-            <textarea placeholder="Pastebin content here..." required></textarea>
+            <textarea placeholder="Pastebin content here..." required id="paste-content"></textarea>
             <input type="submit" id="create" value="Create"></input>
         </form>
             <div class="result-container">
@@ -261,7 +261,25 @@ flex-direction: column-reverse;
         <script>
             $('.create-form').submit(function(e) {
                 e.preventDefault();
-
+                const secret = $("#secret-input").val();
+                const slug = $("#slug-input").val();
+                const content = $("#paste-content").val();
+                console.log({secret, slug, content});
+                
+                $.ajax({
+                    url: 'https://paste.peme969.dev/api/auth',
+                    type: 'POST',
+                    headers: {
+                        "Authorization": "Bearer " + secret,
+                        "Content-Type": "application/json"
+                    },
+                    success: function(response) {
+                        $('#result').text(response);
+                    },
+                    error: function(xhr, status, error) {
+                        $('#result').text(error);  
+                    }
+                });
             })
             $('#mail').click(function() {
                 const email = "me@peme969.dev";
