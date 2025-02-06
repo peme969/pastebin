@@ -9,6 +9,31 @@ export default {
                 if (method === "OPTIONS") {
                     return new Response(null, { status: 204, headers: getCORSHeaders() });
                 }        
+        // Convert human-readable date to timestamp
+        const parseHumanReadableDate = (dateString) => {
+            const date = new Date(dateString);
+            return isNaN(date.getTime()) ? null : date.getTime();
+        };
+
+        // Convert timestamp to seconds remaining
+        const getSecondsRemaining = (timestamp) => {
+            return Math.floor((timestamp - Date.now()) / 1000);
+        };
+
+        // Format timestamp to "YYYY-MM-DD hh:mm AM/PM"
+        const formatTimestamp = (timestamp) => {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+
+            return `${year}-${month}-${day} ${hours}:${minutes} ${ampm}`;
+        };
         const generateRandomSlug = () => {
             return [...Array(6)].map(() => Math.random().toString(36)[2]).join('');
         };
@@ -41,17 +66,24 @@ export default {
                 const { text, password = null, expiration = null, slug = null } = await request.json();
                 
                 const generatedSlug = slug || generateRandomSlug();
+                let expirationTimestamp = parseHumanReadableDate(expiration);
+                    if (!expirationTimestamp) {
+                        return new Response("Invalid expiration format. Use 'YYYY-MM-DD hh:mm AM/PM'.", { status: 400 });
+                    }
+                const expirationInSeconds = getSecondsRemaining(expirationTimestamp);
+
                 const metadata = {
                     password,
-                    expiration: expiration ? Date.now() + expiration * 1000 : null, // Expiration in seconds
-                    createdAt: Date.now()
+                    expirationInSeconds, // Store seconds until expiration
+                    formattedExpiration: expiration, // Store human-readable expiration
+                    createdAt: formatTimestamp(Date.now())
                 };
 
                 await PASTEBIN_KV.put(generatedSlug, JSON.stringify({ text, metadata }));
 
                 return new Response(
-                    JSON.stringify({ success: true, slug: generatedSlug }),
-                    { status: 200, headers: { "Content-Type": "application/json", headers: { "Content-Type": "application/json",...getCORSHeaders() } } }
+                    JSON.stringify({ success: true, slug: generatedSlug, expirationInSeconds, formattedExpiration: expiration }),
+                    { status: 200, headers: { "Content-Type": "application/json",...getCORSHeaders() } }
                 );
             }
 
@@ -71,8 +103,7 @@ export default {
                         keys.keys.map(async (key) => {
                             const data = await PASTEBIN_KV.get(key.name, { type: "json" });
 
-                            // Check if the paste is expired
-                            if (data.metadata.expiration && Date.now() > data.metadata.expiration) {
+                            if (data.metadata.expirationInSeconds && data.metadata.expirationInSeconds <= 0) {
                                 await PASTEBIN_KV.delete(key.name);
                                 return null;
                             }
@@ -83,16 +114,15 @@ export default {
 
                     return new Response(
                         JSON.stringify(pastes.filter((paste) => paste !== null)),
-                        { status: 200, headers: { "Content-Type": "application/json", headers: { "Content-Type": "application/json",...getCORSHeaders() } } }
+                        { status: 200, headers: { "Content-Type": "application/json",...getCORSHeaders() }  }
                     );
                 } else {
                     const paste = await PASTEBIN_KV.get(slug, { type: "json" });
                     if (!paste) return new Response("Paste not found", { status: 404, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
 
-                    // Check if the paste is expired
-                    if (paste.metadata.expiration && Date.now() > paste.metadata.expiration) {
+                    if (paste.metadata.expirationInSeconds && paste.metadata.expirationInSeconds <= 0) {
                         await PASTEBIN_KV.delete(slug);
-                        return new Response("Paste expired and deleted", { status: 410, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
+                        return new Response("Paste expired and deleted", { status: 410 });
                     }
 
                     return new Response(JSON.stringify(paste), { status: 200, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
@@ -110,10 +140,9 @@ export default {
 
         const { text, metadata } = paste;
 
-        // Check if the paste is expired
-        if (metadata.expiration && Date.now() > metadata.expiration) {
+        if (metadata.expirationInSeconds && metadata.expirationInSeconds <= 0) {
             await PASTEBIN_KV.delete(slug);
-            return new Response("Paste expired and deleted", { status: 410, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
+            return new Response("Paste expired and deleted", { status: 410 });
         }
 
         // Password protection
