@@ -83,7 +83,7 @@ export default {
                     if (!expirationDate) {
                         return new Response("Invalid expiration format. Use 'YYYY-MM-DD hh:mm AM/PM'.", { status: 400 });
                     }
-                const expirationInSeconds = getSecondsRemaining(expirationDate);
+                const expirationInSeconds = getSecondsRemaining(expirationDate.getTime());
 
                 const metadata = {
                     password,
