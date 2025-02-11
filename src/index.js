@@ -9,25 +9,24 @@ export default {
                 if (method === "OPTIONS") {
                     return new Response(null, { status: 204, headers: getCORSHeaders() });
                 }        
-        const parseHumanReadableDate = (dateString) => {
-            try {
-                // Create date object in UTC
-                const utcDate = new Date(dateString);
-
-                if (isNaN(utcDate.getTime())) return null;
-
-                // Convert to CST (UTC-6) manually
-                const cstOffset = -6 * 60; // CST is UTC-6 hours
-                const cstTimestamp = utcDate.getTime() + cstOffset * 60 * 1000;
-
-                return new Date(cstTimestamp);
-            } catch (error) {
-                return null;
-            }
-        };
+                const parseHumanReadableDate = (dateString) => {
+                    try {
+                        // Parse as UTC by appending 'Z' to assume UTC
+                        const utcDate = new Date(dateString + " UTC");
+                
+                        if (isNaN(utcDate.getTime())) return null;
+                
+                        return utcDate; // Return date in UTC
+                    } catch (error) {
+                        return null;
+                    }
+                };
+                
         const getSecondsRemaining = (expirationTimestamp) => {
-            return Math.floor((expirationTimestamp - Date.now()) / 1000);
+            const now = new Date();
+            return Math.floor((expirationTimestamp - now.getTime()) / 1000);
         };
+        
 
         const formatTimestamp = (timestamp) => {
             const date = new Date(timestamp);
