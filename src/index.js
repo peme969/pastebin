@@ -11,21 +11,24 @@ export default {
                 }        
                 const parseHumanReadableDate = (dateString) => {
                     try {
-                        // Explicitly set the time zone to UTC
-                        const utcDate = new Date(dateString + " UTC");
+                        // Parse user input as CST (UTC-6) and convert to UTC
+                        const cstDate = new Date(dateString); // This assumes local time (CST)
+                        const utcTimestamp = cstDate.getTime() + (6 * 60 * 60 * 1000); // Convert CST to UTC
                 
-                        if (isNaN(utcDate.getTime())) return null;
-                
-                        return utcDate; // Always return date in UTC
+                        return new Date(utcTimestamp); // Return UTC Date object
                     } catch (error) {
                         return null;
                     }
                 };
                 
                 
+                
                 const getSecondsRemaining = (expirationTimestamp) => {
-                    const now = new Date(); // This is already in UTC
-                    return Math.floor((expirationTimestamp - now.getTime()) / 1000);
+                    const nowUTC = new Date().getTime(); // Get current UTC time
+                    console.log("Current UTC Time:", new Date(nowUTC).toISOString());
+                    console.log("Expiration UTC Time:", new Date(expirationTimestamp).toISOString());
+                
+                    return Math.floor((expirationTimestamp - nowUTC) / 1000);
                 };
                 
 
