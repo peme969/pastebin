@@ -119,9 +119,13 @@ export default {
                         keys.keys.map(async (key) => {
                             const data = await PASTEBIN_KV.get(key.name, { type: "json" });
 
-                            if (data.metadata.expirationInSeconds && data.metadata.expirationInSeconds <= 0) {
+                            // Get current timestamp and check expiration
+                            const now = Date.now();
+                            const expirationTimestamp = new Date(data.metadata.formattedExpiration).getTime();
+
+                            if (expirationTimestamp <= now) {
                                 await PASTEBIN_KV.delete(key.name);
-                                return null;
+                                return null; // Don't include expired pastes
                             }
 
                             return { slug: key.name, metadata: data.metadata };
@@ -135,8 +139,9 @@ export default {
                 } else {
                     const paste = await PASTEBIN_KV.get(slug, { type: "json" });
                     if (!paste) return new Response("Paste not found", { status: 404, headers: { "Content-Type": "application/json",...getCORSHeaders() } });
-
-                    if (paste.metadata.expirationInSeconds && paste.metadata.expirationInSeconds <= 0) {
+                    const now = Date.now();
+                    const expirationTimestamp = new Date(paste.metadata.formattedExpiration).getTime();
+                    if (expirationTimestamp <= now) {
                         await PASTEBIN_KV.delete(slug);
                         return new Response("Paste expired and deleted", { status: 410 });
                     }
