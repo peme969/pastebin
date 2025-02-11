@@ -88,7 +88,7 @@ export default {
                 const metadata = {
                     password,
                     expirationInSeconds, // Store seconds until expiration
-                    formattedExpiration: expirationDate, // Store human-readable expiration
+                    formattedExpiration: formatTimestamp(expirationDate.getTime()), // Store CST formatted expiration
                     createdAt: formatTimestamp(Date.now())
                 };
 
