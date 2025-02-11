@@ -9,30 +9,43 @@ export default {
                 if (method === "OPTIONS") {
                     return new Response(null, { status: 204, headers: getCORSHeaders() });
                 }        
-        // Convert human-readable date to timestamp
         const parseHumanReadableDate = (dateString) => {
-            const date = new Date(dateString);
-            return isNaN(date.getTime()) ? null : date.getTime();
+            try {
+                // Create date object in UTC
+                const utcDate = new Date(dateString);
+
+                if (isNaN(utcDate.getTime())) return null;
+
+                // Convert to CST (UTC-6) manually
+                const cstOffset = -6 * 60; // CST is UTC-6 hours
+                const cstTimestamp = utcDate.getTime() + cstOffset * 60 * 1000;
+
+                return new Date(cstTimestamp);
+            } catch (error) {
+                return null;
+            }
+        };
+        const getSecondsRemaining = (expirationTimestamp) => {
+            return Math.floor((expirationTimestamp - Date.now()) / 1000);
         };
 
-        // Convert timestamp to seconds remaining
-        const getSecondsRemaining = (timestamp) => {
-            return Math.floor((timestamp - Date.now()) / 1000);
-        };
-
-        // Format timestamp to "YYYY-MM-DD hh:mm AM/PM"
         const formatTimestamp = (timestamp) => {
             const date = new Date(timestamp);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
 
-            let hours = date.getHours();
-            const minutes = String(date.getMinutes()).padStart(2, '0');
+            // Convert UTC to CST manually
+            const cstOffset = -6 * 60; // CST offset in minutes
+            const cstDate = new Date(date.getTime() + cstOffset * 60 * 1000);
+
+            const year = cstDate.getFullYear();
+            const month = String(cstDate.getMonth() + 1).padStart(2, '0');
+            const day = String(cstDate.getDate()).padStart(2, '0');
+
+            let hours = cstDate.getHours();
+            const minutes = String(cstDate.getMinutes()).padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12 || 12;
 
-            return `${year}-${month}-${day} ${hours}:${minutes} ${ampm}`;
+            return `${year}-${month}-${day} ${hours}:${minutes} ${ampm} CST`;
         };
         const generateRandomSlug = () => {
             return [...Array(6)].map(() => Math.random().toString(36)[2]).join('');
@@ -66,23 +79,23 @@ export default {
                 const { text, password = null, expiration = null, slug = null } = await request.json();
                 
                 const generatedSlug = slug || generateRandomSlug();
-                let expirationTimestamp = parseHumanReadableDate(expiration);
-                    if (!expirationTimestamp) {
+                const expirationDate = parseHumanReadableDate(expiration);
+                    if (!expirationDate) {
                         return new Response("Invalid expiration format. Use 'YYYY-MM-DD hh:mm AM/PM'.", { status: 400 });
                     }
-                const expirationInSeconds = getSecondsRemaining(expirationTimestamp);
+                const expirationInSeconds = getSecondsRemaining(expirationDate);
 
                 const metadata = {
                     password,
                     expirationInSeconds, // Store seconds until expiration
-                    formattedExpiration: expiration, // Store human-readable expiration
+                    formattedExpiration: expirationDate, // Store human-readable expiration
                     createdAt: formatTimestamp(Date.now())
                 };
 
                 await PASTEBIN_KV.put(generatedSlug, JSON.stringify({ text, metadata }));
 
                 return new Response(
-                    JSON.stringify({ success: true, slug: generatedSlug, expirationInSeconds, formattedExpiration: expiration }),
+                    JSON.stringify({ success: true, slug: generatedSlug, expirationInSeconds, formattedExpiration: expirationDate }),
                     { status: 200, headers: { "Content-Type": "application/json",...getCORSHeaders() } }
                 );
             }
