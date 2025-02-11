@@ -11,22 +11,23 @@ export default {
                 }        
                 const parseHumanReadableDate = (dateString) => {
                     try {
-                        // Parse as UTC by appending 'Z' to assume UTC
+                        // Explicitly set the time zone to UTC
                         const utcDate = new Date(dateString + " UTC");
                 
                         if (isNaN(utcDate.getTime())) return null;
                 
-                        return utcDate; // Return date in UTC
+                        return utcDate; // Always return date in UTC
                     } catch (error) {
                         return null;
                     }
                 };
                 
-        const getSecondsRemaining = (expirationTimestamp) => {
-            const now = new Date();
-            return Math.floor((expirationTimestamp - now.getTime()) / 1000);
-        };
-        
+                
+                const getSecondsRemaining = (expirationTimestamp) => {
+                    const now = new Date(); // This is already in UTC
+                    return Math.floor((expirationTimestamp - now.getTime()) / 1000);
+                };
+                
 
         const formatTimestamp = (timestamp) => {
             const date = new Date(timestamp);
