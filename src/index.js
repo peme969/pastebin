@@ -1,13 +1,19 @@
-import html from "./src/index.html";
-import docsHtml from "./src/docs.html";
-import styleCss from "./src/style.css";
-import runJs from "./src/run.js";
-import apiDocs from "./src/api-docs.md";
+import html from "./index.html";
+import docsHtml from "./docs.html";
+import styleCss from "./style.css";
+import runJs from "./run.js";
+import apiDocsMd from "./api-docs.md";
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;
+    const { pathname } = new URL(request.url);
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET,OPTIONS",
+      "Access-Control-Allow-Headers": "*",
+    };
     const PASTEBIN_KV = env.Pastebin;
     const API_SECRET = env.API_KEY;
     if (method === "OPTIONS") {
@@ -61,23 +67,28 @@ export default {
     //if (path === "/") {
     //    return new Response("Hello, World! New UI for the home route coming soon :)", { status: 200 });
     //}
-    if (url.pathname === "/") {
+    if (pathname === "/" || pathname === "/index.html") {
       return new Response(html, {
-        headers: { "Content-Type": "text/html", ...getCORSHeaders() },
+        headers: { "Content-Type": "text/html", ...corsHeaders },
       });
     }
-    if (path === "/src/style.css") {
+    if (pathname === "/docs.html") {
+      return new Response(docsHtml, {
+        headers: { "Content-Type": "text/html", ...corsHeaders },
+      });
+    }
+    if (pathname === "/style.css") {
       return new Response(styleCss, {
         headers: { "Content-Type": "text/css" },
       });
     }
-    if (path === "/src/run.js") {
+    if (pathname === "/run.js") {
       return new Response(runJs, {
         headers: { "Content-Type": "application/javascript" },
       });
     }
-    if (path === "/src/api-docs.md") {
-      return new Response(apiDocs, {
+    if (pathname === "/api-docs.md") {
+      return new Response(apiDocsMd, {
         headers: { "Content-Type": "text/markdown" },
       });
     }

@@ -276,3 +276,55 @@ h1 {
     color: var(--dynamic-text);
     line-height: 1.6;
 }
+.navbar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 1.5em;
+}
+.navbar a,
+.navbar a:visited {
+    text-decoration: none !important;
+    color: var(--dynamic-text);
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 500;
+}
+.dropdown {
+    position: relative;
+}
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--dynamic-bg);
+    border: 1px solid var(--dynamic-text);
+    border-radius: 4px;
+    min-width: 180px;
+    z-index: 10;
+}
+.dropdown-content li {
+    padding: 0.5em 1em;
+}
+.dropdown-content li a {
+    display: block;
+}
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+.content-area {
+    max-width: 800px;
+    margin: 2em auto;
+    padding: 1.5em;
+    background: var(--darkbg);
+    border: 2px solid var(--darkt);
+    border-radius: 8px;
+    color: var(--dynamic-text);
+    font-family: "Raleway", serif;
+}
+.content-area h2 {
+    border-bottom: 1px solid var(--dynamic-text);
+    padding-bottom: 0.5em;
+    margin-top: 1.5em;
+}

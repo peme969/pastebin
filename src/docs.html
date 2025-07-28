@@ -4,8 +4,8 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Docs - My Pastebin</title>
-        <!-- Point to CSS inside /src -->
-        <link rel="stylesheet" href="/src/style.css" />
+        <!-- Use root-relative paths -->
+        <link rel="stylesheet" href="/style.css" />
         <script
             defer
             src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -14,22 +14,18 @@
             defer
             src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"
         ></script>
-        <!-- Point to run.js inside /src -->
-        <script defer src="/src/run.js"></script>
+        <script defer src="/run.js"></script>
     </head>
     <body>
-        <!-- Theme selector -->
         <select class="palette-dropdown" id="palette-selector">
             <option value="DarkSky">Dark Sky</option>
             <option value="DeepOcean">Deep Ocean</option>
         </select>
 
         <h1>Documentation</h1>
-
-        <!-- Navigation/Menu for Docs -->
         <nav class="navbar">
             <ul>
-                <li><a href="/src/index.html">Home</a></li>
+                <li><a href="/">Home</a></li>
                 <li class="dropdown">
                     <a href="#">Sections ▼</a>
                     <ul class="dropdown-content" id="docs-menu"></ul>
@@ -37,48 +33,42 @@
             </ul>
         </nav>
 
-        <!-- Container for rendered Markdown -->
         <div id="docs-content" class="content-area">
-            <p>Loading documentation…</p>
+            <p>Loading docs…</p>
         </div>
 
-        <!-- Script: fetch & render Markdown, build menu -->
         <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                fetch("/src/api-docs.md")
-                    .then((res) => {
-                        if (!res.ok)
-                            throw new Error(res.status + " " + res.statusText);
-                        return res.text();
+            document.addEventListener("DOMContentLoaded", () => {
+                fetch("/api-docs.md")
+                    .then((r) => {
+                        if (!r.ok) throw new Error(r.statusText);
+                        return r.text();
                     })
                     .then((md) => {
-                        const htmlContent = marked.parse(md);
-                        const container =
-                            document.getElementById("docs-content");
-                        container.innerHTML = htmlContent;
+                        document.getElementById("docs-content").innerHTML =
+                            marked.parse(md);
                         document
                             .querySelectorAll("#docs-content h2")
-                            .forEach((elem) => {
-                                const text = elem.textContent.trim();
-                                const slug = text
+                            .forEach((h2) => {
+                                const slug = h2.textContent
+                                    .trim()
                                     .toLowerCase()
                                     .replace(/\s+/g, "-");
-                                elem.id = slug;
-                                const li = document.createElement("li");
+                                h2.id = slug;
                                 const a = document.createElement("a");
                                 a.href = `#${slug}`;
-                                a.textContent = text;
+                                a.textContent = h2.textContent;
+                                const li = document.createElement("li");
                                 li.appendChild(a);
                                 document
                                     .getElementById("docs-menu")
                                     .appendChild(li);
                             });
                     })
-                    .catch((err) => {
-                        console.error("Failed to load docs:", err);
-                        const container =
-                            document.getElementById("docs-content");
-                        container.innerHTML = `<p style="color: red;">Error loading docs: ${err.message}</p>`;
+                    .catch((e) => {
+                        console.error(e);
+                        document.getElementById("docs-content").innerHTML =
+                            `<p style="color:red;">Error: ${e.message}</p>`;
                     });
             });
         </script>
