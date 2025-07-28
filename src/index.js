@@ -1,4 +1,8 @@
-import html from "./index.html";
+import html from "./src/index.html";
+import docsHtml from "./src/docs.html";
+import styleCss from "./src/style.css";
+import runJs from "./src/run.js";
+import apiDocs from "./src/api-docs.md";
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
