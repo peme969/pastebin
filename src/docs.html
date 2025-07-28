@@ -4,9 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Docs - My Pastebin</title>
-        <!-- Reuse existing styles and theme script -->
         <link rel="stylesheet" href="./style.css" />
-        <!-- Load scripts with defer to ensure they load before execution -->
         <script
             defer
             src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -38,29 +36,32 @@
         </nav>
 
         <!-- Container for rendered Markdown -->
-        <div id="docs-content" class="content-area"></div>
+        <div id="docs-content" class="content-area">
+            <p>Loading documentation…</p>
+        </div>
 
-        <!-- Inline script to fetch, render, and build menu -->
+        <!-- Script: fetch & render Markdown, build menu -->
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 fetch("api-docs.md")
-                    .then((res) => res.text())
+                    .then((res) => {
+                        if (!res.ok)
+                            throw new Error(res.status + " " + res.statusText);
+                        return res.text();
+                    })
                     .then((md) => {
-                        // Use marked.parse() instead of marked() to ensure compatibility
                         const htmlContent = marked.parse(md);
-                        document.getElementById("docs-content").innerHTML =
-                            htmlContent;
-
-                        // Build dropdown menu from all H2 headings
+                        const container =
+                            document.getElementById("docs-content");
+                        container.innerHTML = htmlContent;
                         document
                             .querySelectorAll("#docs-content h2")
-                            .forEach(function (elem) {
+                            .forEach((elem) => {
                                 const text = elem.textContent.trim();
                                 const slug = text
                                     .toLowerCase()
                                     .replace(/\s+/g, "-");
                                 elem.id = slug;
-
                                 const li = document.createElement("li");
                                 const a = document.createElement("a");
                                 a.href = `#${slug}`;
@@ -71,7 +72,12 @@
                                     .appendChild(li);
                             });
                     })
-                    .catch((err) => console.error("Failed to load docs:", err));
+                    .catch((err) => {
+                        console.error("Failed to load docs:", err);
+                        const container =
+                            document.getElementById("docs-content");
+                        container.innerHTML = `<p style="color: red;">Error loading docs: ${err.message}</p>`;
+                    });
             });
         </script>
     </body>
