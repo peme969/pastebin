@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Docs - My Pastebin</title>
+        <!-- Reuse existing styles and theme script -->
+        <link rel="stylesheet" href="./style.css" />
+        <!-- Load scripts with defer to ensure they load before execution -->
+        <script
+            defer
+            src="https://code.jquery.com/jquery-3.6.0.min.js"
+        ></script>
+        <script
+            defer
+            src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"
+        ></script>
+        <script defer src="./run.js"></script>
+    </head>
+    <body>
+        <!-- Theme selector -->
+        <select class="palette-dropdown" id="palette-selector">
+            <option value="DarkSky">Dark Sky</option>
+            <option value="DeepOcean">Deep Ocean</option>
+        </select>
+
+        <h1>Documentation</h1>
+
+        <!-- Navigation/Menu for Docs -->
+        <nav class="navbar">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li class="dropdown">
+                    <a href="#">Sections ▼</a>
+                    <ul class="dropdown-content" id="docs-menu"></ul>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Container for rendered Markdown -->
+        <div id="docs-content" class="content-area"></div>
+
+        <!-- Inline script to fetch, render, and build menu -->
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                fetch("api-docs.md")
+                    .then((res) => res.text())
+                    .then((md) => {
+                        // Use marked.parse() instead of marked() to ensure compatibility
+                        const htmlContent = marked.parse(md);
+                        document.getElementById("docs-content").innerHTML =
+                            htmlContent;
+
+                        // Build dropdown menu from all H2 headings
+                        document
+                            .querySelectorAll("#docs-content h2")
+                            .forEach(function (elem) {
+                                const text = elem.textContent.trim();
+                                const slug = text
+                                    .toLowerCase()
+                                    .replace(/\s+/g, "-");
+                                elem.id = slug;
+
+                                const li = document.createElement("li");
+                                const a = document.createElement("a");
+                                a.href = `#${slug}`;
+                                a.textContent = text;
+                                li.appendChild(a);
+                                document
+                                    .getElementById("docs-menu")
+                                    .appendChild(li);
+                            });
+                    })
+                    .catch((err) => console.error("Failed to load docs:", err));
+            });
+        </script>
+    </body>
+</html>

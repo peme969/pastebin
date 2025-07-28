@@ -7,7 +7,7 @@
         <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
         <link rel="manifest" href="./site.webmanifest">
         <meta name="title" content="Peme969’s Pastebin">
-        <meta name="description" content="Peme969’s Personal Pastebin 
+        <meta name="description" content="Peme969’s Personal Pastebin
         Email me for a temp key 🔑">
         <meta name="keywords" content="bio, personal pastebin, peme969, peme969’s site, blog, cool, epic, fun, github, cloudflare, cloudflare-pages, cloudflare-workers, link-shortener">
         <meta name="robots" content="index, follow">
@@ -161,27 +161,27 @@ textarea:focus {
     cursor: pointer;
     transition: background 0.3s ease-in-out;
   }
-  
+
   .palette-dropdown:hover {
     background: var(--darkt);
     color: var(--darkbg);
   }
-  
+
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
   }
-  
+
   @keyframes slideIn {
     from { transform: translateY(-20px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
-  
+
   @keyframes pulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
   }
-  
+
   @keyframes glow {
     0%, 100% { box-shadow: 0 0 20px #fff, 0 0 30px #FFD1F7; }
     50% { box-shadow: 0 0 40px #fff, 0 0 60px #FFD1F7; }
@@ -189,7 +189,7 @@ textarea:focus {
   .check {
     position: fixed;
 right:13px;
-bottom:30px;  
+bottom:30px;
 display:flex;
 flex-direction: column-reverse;
   }
@@ -277,9 +277,12 @@ flex-direction: column-reverse;
         </select>
         <h1>Peme969's Pastebin</h1>
         <div class="container">
-            <div class="navbar">
-
-            </div>
+            <nav class="navbar">
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="docs.html">Docs</a></li>
+            </ul>
+            </nav>
             <form class='create-form'>
             <input type="password" placeholder="Key 🔑" id="secret-input" required>
             <input type="text" placeholder="Slug (optional)" id="slug-input">
