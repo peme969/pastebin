@@ -4,7 +4,8 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Docs - My Pastebin</title>
-        <link rel="stylesheet" href="./style.css" />
+        <!-- Point to CSS inside /src -->
+        <link rel="stylesheet" href="/src/style.css" />
         <script
             defer
             src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -13,7 +14,8 @@
             defer
             src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"
         ></script>
-        <script defer src="./run.js"></script>
+        <!-- Point to run.js inside /src -->
+        <script defer src="/src/run.js"></script>
     </head>
     <body>
         <!-- Theme selector -->
@@ -27,7 +29,7 @@
         <!-- Navigation/Menu for Docs -->
         <nav class="navbar">
             <ul>
-                <li><a href="index.html">Home</a></li>
+                <li><a href="/src/index.html">Home</a></li>
                 <li class="dropdown">
                     <a href="#">Sections ▼</a>
                     <ul class="dropdown-content" id="docs-menu"></ul>
@@ -43,7 +45,7 @@
         <!-- Script: fetch & render Markdown, build menu -->
         <script>
             document.addEventListener("DOMContentLoaded", function () {
-                fetch("api-docs.md")
+                fetch("/src/api-docs.md")
                     .then((res) => {
                         if (!res.ok)
                             throw new Error(res.status + " " + res.statusText);
