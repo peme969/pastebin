@@ -225,7 +225,10 @@ h1 {
     font-family: "JetBrains Mono", monospace;
     font-weight: 500;
 }
-
+.navbar a,
+.navbar a:visited {
+    text-decoration: none !important;
+}
 .dropdown {
     position: relative;
 }
