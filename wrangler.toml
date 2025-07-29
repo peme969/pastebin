@@ -1,0 +1,9 @@
+name            = "pastebin"
+compatibility_date = "2025-01-24"
+
+kv_namespaces = [
+  { binding = "Pastebin", id = "7511b61ec1a8423bb1903a4960ac7308" }
+]
+
+# enable static asset serving:
+site = { bucket = "./public", entry-point = "workers-site" }
