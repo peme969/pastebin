@@ -5,6 +5,9 @@ compatibility_date = "2025-07-29"
 kv_namespaces = [
     { binding = "Pastebin", id = "7511b61ec1a8423bb1903a4960ac7308" },
 ]
+zone_id = "6119fc73cfa003d13edb85687c02e991"
 
+# bind your Worker to every path under your hostname:
+route = "pastebin.peme969.dev/*"
 [site]
 bucket = "./public"
