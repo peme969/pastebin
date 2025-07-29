@@ -1,9 +1,12 @@
-name            = "pastebin"
-compatibility_date = "2025-01-24"
+
+site = { bucket = "./public", entry-point = "workers-site" }
+name = "pastebin"
+main = "src/index.js"
+compatibility_date = "2025-07-29"
 
 kv_namespaces = [
-  { binding = "Pastebin", id = "7511b61ec1a8423bb1903a4960ac7308" }
+    { binding = "Pastebin", id = "7511b61ec1a8423bb1903a4960ac7308" },
 ]
 
-# enable static asset serving:
-site = { bucket = "./public", entry-point = "workers-site" }
+[site]
+bucket = "./public"
