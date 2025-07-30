@@ -1,6 +1,6 @@
 import html from './index.html';
 import docsHtml from './docs.html';
-import apiDocsMd from './api-docs.md';
+import apiDocs from './api-docs.txt';
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -74,11 +74,12 @@ export default {
           
         if (path.startsWith("/api/")) {
             if (url.pathname === '/api/docs' || url.pathname === '/api/docs/') {
-                return new Response(apiDocsMd, {
-                    status: 200,
-                    headers: { "Content-Type": "text/markdown", ...getCORSHeaders() }
+                return new Response(apiDocs, {
+                  status: 200,
+                  headers: { 'Content-Type': 'text/markdown', ...getCORSHeaders() },
                 });
               }
+              
             if (url.pathname === "/api/auth") {
                 const authHeader = request.headers.get("Authorization");
                 if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {

@@ -1,0 +1,237 @@
+
+A serverless pastebin API with expiration, password protection, and authentication, powered by Workers KV.
+
+---
+
+## 🌐 Base URL
+
+```
+https://pastebin.peme969.dev
+```
+
+---
+
+## 🔐 Authentication
+
+All `/api/*` routes require a **Bearer Token**:
+
+**Header:**
+```http
+Authorization: Bearer <API_KEY>
+```
+
+---
+
+## 🔁 CORS Support
+
+CORS is fully supported with appropriate preflight handling.
+
+---
+
+## 📂 Endpoints
+
+---
+
+### `GET /`
+
+**Returns**:  
+The static HTML homepage.
+
+**Example:**
+```bash
+curl https://pastebin.peme969.dev/
+```
+
+---
+
+### `POST /api/create`
+
+Create a new paste.
+
+**Headers:**
+- `Authorization: Bearer <API_KEY>`
+- `Content-Type: application/json`
+
+**Body:**
+```json
+{
+  "text": "Hello, world!",
+  "password": "mypassword",                // Optional
+  "expiration": "2025-08-01 12:00 PM",     // Optional CST format
+  "slug": "customid"                       // Optional
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "slug": "customid",
+  "expirationInSeconds": 86400,
+  "formattedExpiration": "2025-08-01 12:00 PM CST"
+}
+```
+
+**Example:**
+```bash
+curl -X POST https://pastebin.peme969.dev/api/create \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"text":"My paste","expiration":"2025-08-01 10:00 AM","password":"1234"}'
+```
+
+---
+
+### `GET /api/view`
+
+List all valid (non-expired) pastes.
+
+**Headers:**
+- `Authorization: Bearer <API_KEY>`
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" https://pastebin.peme969.dev/api/view
+```
+
+**Response:**
+```json
+[
+  {
+    "slug": "abc123",
+    "metadata": {
+      "password": null,
+      "expirationInSeconds": 3600,
+      "formattedExpiration": "2025-08-01 12:00 PM CST",
+      "createdAt": "2025-07-28 07:30 AM CST"
+    }
+  }
+]
+```
+
+---
+
+### `GET /api/view/:slug`
+
+Fetch a specific paste.
+
+**Response:**
+```json
+{
+  "text": "Hello, world!",
+  "metadata": {
+    "password": null,
+    "expirationInSeconds": 3600,
+    "formattedExpiration": "2025-08-01 12:00 PM CST",
+    "createdAt": "2025-07-28 07:30 AM CST"
+  }
+}
+```
+
+**Note:** If password-protected, include:
+```http
+Authorization: Bearer <password>
+```
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer 1234" https://pastebin.peme969.dev/api/view/my-paste
+```
+
+---
+
+### `DELETE /api/delete`
+
+Delete a paste by slug.
+
+**Headers:**
+- `Authorization: Bearer <API_KEY>`
+- `Content-Type: application/json`
+
+**Body:**
+```json
+{ "slug": "abc123" }
+```
+
+**Response:**
+```json
+{ "success": true }
+```
+
+**Example:**
+```bash
+curl -X DELETE https://pastebin.peme969.dev/api/delete \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"abc123"}'
+```
+
+---
+
+### `GET /:slug`
+
+Fetch paste for public viewing (HTML).  
+- If password-protected: prompts user for password via browser.
+- If expired: returns `410 Gone`.
+
+**Example:**
+```bash
+curl https://pastebin.peme969.dev/abc123
+```
+
+---
+
+### `GET /api/auth`
+
+Verify API key.
+
+**Headers:**
+- `Authorization: Bearer <API_KEY>`
+
+**Response:**
+- `200 OK`: Authorized
+- `401 Unauthorized`: Invalid key
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" https://pastebin.peme969.dev/api/auth
+```
+
+---
+
+## ⚠️ Expiration Format
+
+Use CST format:
+
+```
+YYYY-MM-DD hh:mm AM/PM
+```
+
+---
+
+## 🛑 Status Codes
+
+| Code | Meaning                     |
+|------|-----------------------------|
+| 200  | OK                          |
+| 204  | No Content (for OPTIONS)    |
+| 400  | Bad Request (e.g., missing slug) |
+| 401  | Unauthorized (invalid API key) |
+| 404  | Not Found                   |
+| 410  | Gone (expired paste)        |
+
+---
+
+## 🧾 Example Paste Object
+
+```json
+{
+  "text": "Secret note here...",
+  "metadata": {
+    "password": "optional",
+    "expirationInSeconds": 3600,
+    "formattedExpiration": "2025-08-01 12:00 PM CST",
+    "createdAt": "2025-07-28 08:00 AM CST"
+  }
+}
+```
