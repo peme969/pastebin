@@ -10,10 +10,8 @@ kv_namespaces = [
   { binding = "PASTES", id = "7511b61ec1a8423bb1903a4960ac7308" }
 ]
 
-# Routes: API and slug fallback
 routes = [
-  { pattern = "paste.peme969.dev/api/*", script = "pastebin-worker" },
-  { pattern = "paste.peme969.dev/api/*/*", script = "pastebin-worker" },
-  { pattern = "paste.peme969.dev/delete", script = "pastebin-worker" },
-  { pattern = "paste.peme969.dev/*", script = "pastebin-worker" }
+  "paste.peme969.dev/api/*",
+  "paste.peme969.dev/delete",
+  "paste.peme969.dev/*"
 ]
