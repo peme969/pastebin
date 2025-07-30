@@ -307,107 +307,93 @@ flex-direction: column-reverse;
         </p>
     </div>
         <script>
-            $('.create-form').submit(function(e) {
-                e.preventDefault();
-                const secret = $("#secret-input").val();
-                const slug = $("#slug-input").val();
-                const content = $("#paste-content").val();
-                $.ajax({
-                    url: 'https://paste.peme969.dev/api/auth',
-                    type: 'POST',
-                    headers: {
-                        "Authorization": "Bearer " + secret,
-                        "Content-Type": "application/json"
-                    },
-                    success: function(response, status, xhr) {
-                        if (xhr.status === 200) { // 200 OK - Authorized
-                            $('#result').text("Authorized! Creating slug...");
-                            $('#result').addClass("good").removeClass("bad");
-                            const data = {
-                                "text": content,
-                                "slug": slug
-                            }
-                            if (slug === "" || slug === null) {
-                                data = {
-                                    "text": content,
+        $('.create-form').submit(function(e) {
+            e.preventDefault();
+
+            const secret = $("#secret-input").val();
+            const slug = $("#slug-input").val();
+            const content = $("#paste-content").val();
+            const expiration = $("#expires").val();
+
+            if (!content.trim()) {
+                $('#result').text("Please enter some content for the paste.");
+                $('#result').addClass("bad").removeClass("good");
+                return;
+            }
+
+            // First verify the API key
+            $.ajax({
+                url: '/api/auth',
+                type: 'GET',
+                headers: {
+                    "Authorization": "Bearer " + secret,
+                    "Content-Type": "application/json"
+                },
+                success: function(response, status, xhr) {
+                    if (xhr.status === 200) {
+                        $('#result').text("Authorized! Creating paste...");
+                        $('#result').addClass("good").removeClass("bad");
+
+                        // Now create the paste
+                        const data = {
+                            "text": content
+                        };
+
+                        // Add optional fields if they exist
+                        if (slug && slug.trim()) {
+                            data.slug = slug.trim();
+                        }
+
+                        if (expiration && expiration.trim()) {
+                            data.expiration = expiration.trim();
+                        }
+
+                        $.ajax({
+                            url: '/api/create',
+                            type: 'POST',
+                            headers: {
+                                "Authorization": "Bearer " + secret,
+                                "Content-Type": "application/json"
+                            },
+                            data: JSON.stringify(data),
+                            success: function(createResponse) {
+                                $('#result').html(`
+                                    <strong>Paste created successfully!</strong><br>
+                                    Slug: <code>${createResponse.slug}</code><br>
+                                    URL: <a href="/${createResponse.slug}" target="_blank">/${createResponse.slug}</a><br>
+                                    ${createResponse.formattedExpiration ? `Expires: ${createResponse.formattedExpiration}` : 'No expiration'}
+                                `);
+                                $('#result').addClass("good").removeClass("bad");
+
+                                // Clear the form
+                                $("#slug-input").val("");
+                                $("#paste-content").val("");
+                                $("#expires").val("");
+                            },
+                            error: function(xhr, status, error) {
+                                let errorMsg = "Failed to create paste. ";
+                                try {
+                                    const errorResponse = JSON.parse(xhr.responseText);
+                                    errorMsg += errorResponse.message || xhr.responseText;
+                                } catch (e) {
+                                    errorMsg += xhr.responseText || "Unknown error occurred.";
                                 }
+                                $('#result').text(errorMsg);
+                                $('#result').addClass("bad").removeClass("good");
                             }
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        if (xhr.status === 401) { // 401 Unauthorized
-                            $('#result').text("Unauthorized! Wrong Secret Key. Email me for a temp (might be permanent...) key 🔑");
-                        } else {
-                            $('#result').text("API Error... Please try again. (better, email me: me@peme969.dev)");
-                        }
-
-                        $('#result').addClass("bad").removeClass("good");
+                        });
                     }
-                  });
-
-            })
-            $('#mail').click(function() {
-                const email = "me@peme969.dev";
-                const subject = "Pastebin Key Request";
-                const body = `I would like a pastebin key because [enter reason here].%0A%0A` +
-                            `Methods of Verification:%0A` +
-                            `Github: Add 'key select' to your github bio and root README ` +
-                            `({github_username}/{github_username}) and attach the link here.%0A%0A` +
-                            `I, Peme969 will be asking you for more verifications in a follow-up email.`;
-                const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${body}`;
-                console.log(mailtoLink);
-                window.location.href = mailtoLink;
+                },
+                error: function(xhr, status, error) {
+                    if (xhr.status === 401) {
+                        $('#result').text("Unauthorized! Wrong Secret Key. Email me for a temp key 🔑");
+                    } else {
+                        $('#result').text("API Error... Please try again. (Email me: me@peme969.dev)");
+                    }
+                    $('#result').addClass("bad").removeClass("good");
+                }
             });
-
-            document.getElementById("palette-selector").addEventListener("change", function() {
-                let selectedPalette = this.value;
-                document.body.style.background = getComputedStyle(document.documentElement).getPropertyValue(`--${selectedPalette}-bg`);
-                document.body.style.color = getComputedStyle(document.documentElement).getPropertyValue(`--${selectedPalette}-text`);
-            });
-            const themeDict = {
-    "DarkSky": {
-        "bg": "--palette1-bg",
-        "text": "--palette1-text",
-        "title": "My Pastebin 🌙🌌"
-    },
-    "DeepOcean": {
-        "bg": "--palette3-bg",
-        "text": "--palette3-text",
-        "title": "My Pastebin 🌊"
-    }
-};
-
-
-$(document).ready(function () {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        applyTheme(savedTheme);
-    }
-});
-$('.palette-dropdown').on('change', function () {
-    const selectedTheme = $(this).val();
-    if (selectedTheme !== localStorage.getItem('theme')) {
-        applyTheme(selectedTheme);
-        localStorage.setItem('theme', selectedTheme);
-    }
-});
-function applyTheme(theme) {
-    if (!themeDict[theme]) return;
-    const root = document.documentElement;
-    $('.palette-dropdown').val(theme);
-    root.style.setProperty('--dynamic-bg', getComputedStyle(root).getPropertyValue(themeDict[theme].bg));
-    root.style.setProperty('--dynamic-text', getComputedStyle(root).getPropertyValue(themeDict[theme].text));
-    $('body').css({
-        'background': 'var(--dynamic-bg)',
-        'color': 'var(--dynamic-text)'
-    });
-    updateTitle(theme);
-}
-function updateTitle(theme) {
-    if (document.title !== themeDict[theme].title) {
-        document.title = themeDict[theme].title;
-    }
-}
+        });
 
         </script>
         <script defer src="/run.js"></script>

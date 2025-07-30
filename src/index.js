@@ -2,8 +2,8 @@ import {
   getAssetFromKV,
   mapRequestToAsset,
 } from "@cloudflare/kv-asset-handler";
+
 export default {
-  // fetch() now has three args: request, env, and ctx
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
@@ -17,7 +17,7 @@ export default {
       return await getAssetFromKV({
         request,
         env,
-        waitUntil: ctx.waitUntil, // so assets can be streamed properly,
+        waitUntil: ctx.waitUntil,
         mapRequestToAsset,
       });
     } catch (err) {
@@ -53,59 +53,108 @@ async function handleApi(request, env) {
     });
   }
 
-  // create, delete, view, etc… (your existing code goes here, unchanged)
+  // All other API routes require authentication
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
+    return new Response("Unauthorized", {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+    });
+  }
 
   if (pathname.startsWith("/api/create") && request.method === "POST") {
-    const {
-      text,
-      password = null,
-      expiration = null,
-      slug = null,
-    } = await request.json();
-    const generatedSlug = slug || generateRandomSlug();
-    const expirationDate = parseHumanReadableDate(expiration);
-    if (!expirationDate) {
-      return new Response(
-        "Invalid expiration format. Use 'YYYY-MM-DD hh:mm AM/PM'.",
-        { status: 400 },
-      );
-    }
-    const expirationInSeconds = getSecondsRemaining(expirationDate.getTime());
-    const metadata = {
-      password,
-      expirationInSeconds, // Store seconds until expiration
-      formattedExpiration: formatTimestamp(expirationDate.getTime()), // Store CST formatted expiration
-      createdAt: formatTimestamp(Date.now()),
-    };
+    try {
+      const {
+        text,
+        password = null,
+        expiration = null,
+        slug = null,
+      } = await request.json();
 
-    await PASTEBIN_KV.put(generatedSlug, JSON.stringify({ text, metadata }));
+      if (!text) {
+        return new Response("Missing text field", {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+        });
+      }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        slug: generatedSlug,
+      const generatedSlug = slug || generateRandomSlug();
+
+      let expirationDate = null;
+      let expirationInSeconds = null;
+      let formattedExpiration = null;
+
+      if (expiration) {
+        expirationDate = parseHumanReadableDate(expiration);
+        if (!expirationDate) {
+          return new Response(
+            "Invalid expiration format. Use 'YYYY-MM-DD hh:mm AM/PM'.",
+            {
+              status: 400,
+              headers: {
+                "Content-Type": "application/json",
+                ...getCORSHeaders(),
+              },
+            },
+          );
+        }
+        expirationInSeconds = getSecondsRemaining(expirationDate.getTime());
+        formattedExpiration = formatTimestamp(expirationDate.getTime());
+      }
+
+      const metadata = {
+        password,
         expirationInSeconds,
-        formattedExpiration: expirationDate,
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...getCORSHeaders(),
+        formattedExpiration,
+        createdAt: formatTimestamp(Date.now()),
+      };
+
+      await PASTEBIN_KV.put(generatedSlug, JSON.stringify({ text, metadata }));
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          slug: generatedSlug,
+          expirationInSeconds,
+          formattedExpiration,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...getCORSHeaders(),
+          },
         },
-      },
-    );
+      );
+    } catch (error) {
+      return new Response("Invalid JSON", {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+      });
+    }
   }
 
   if (pathname.startsWith("/api/delete") && request.method === "DELETE") {
-    const { slug } = await request.json();
-    if (!slug) return new Response("Missing slug", { status: 400 });
+    try {
+      const { slug } = await request.json();
+      if (!slug) {
+        return new Response("Missing slug", {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+        });
+      }
 
-    await PASTEBIN_KV.delete(slug);
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...getCORSHeaders() },
-    });
+      await PASTEBIN_KV.delete(slug);
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+      });
+    } catch (error) {
+      return new Response("Invalid JSON", {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+      });
+    }
   }
 
   if (pathname.startsWith("/api/view") && request.method === "GET") {
@@ -115,14 +164,22 @@ async function handleApi(request, env) {
       const pastes = await Promise.all(
         keys.keys.map(async (key) => {
           const data = await PASTEBIN_KV.get(key.name, { type: "json" });
+
+          if (!data || !data.metadata) return null;
+
           const now = Date.now();
-          const expirationTimestamp = new Date(
-            data.metadata.formattedExpiration,
-          ).getTime();
-          if (expirationTimestamp <= now) {
-            await PASTEBIN_KV.delete(key.name);
-            return null;
+
+          // Check if paste has expired
+          if (data.metadata.formattedExpiration) {
+            const expirationTimestamp = new Date(
+              data.metadata.formattedExpiration,
+            ).getTime();
+            if (expirationTimestamp <= now) {
+              await PASTEBIN_KV.delete(key.name);
+              return null;
+            }
           }
+
           return { slug: key.name, metadata: data.metadata };
         }),
       );
@@ -136,19 +193,28 @@ async function handleApi(request, env) {
     // View single paste
     const slug = pathname.split("/").pop();
     const paste = await PASTEBIN_KV.get(slug, { type: "json" });
+
     if (!paste) {
       return new Response("Paste not found", {
         status: 404,
         headers: { "Content-Type": "application/json", ...getCORSHeaders() },
       });
     }
+
     const now = Date.now();
-    const expirationTimestamp = new Date(
-      paste.metadata.formattedExpiration,
-    ).getTime();
-    if (expirationTimestamp <= now) {
-      await PASTEBIN_KV.delete(slug);
-      return new Response("Paste expired and deleted", { status: 410 });
+
+    // Check if paste has expired
+    if (paste.metadata && paste.metadata.formattedExpiration) {
+      const expirationTimestamp = new Date(
+        paste.metadata.formattedExpiration,
+      ).getTime();
+      if (expirationTimestamp <= now) {
+        await PASTEBIN_KV.delete(slug);
+        return new Response("Paste expired and deleted", {
+          status: 410,
+          headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+        });
+      }
     }
 
     return new Response(JSON.stringify(paste), {
@@ -157,7 +223,10 @@ async function handleApi(request, env) {
     });
   }
 
-  return new Response("Not found", { status: 404 });
+  return new Response("Not found", {
+    status: 404,
+    headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+  });
 }
 
 function getCORSHeaders() {
