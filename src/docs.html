@@ -7,9 +7,42 @@
   <link rel="stylesheet" href="/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    body { font-family: 'Raleway', sans-serif; padding: 2rem; background: var(--palette1-bg); color: var(--palette1-text); }
-    pre, code { background: #2e2e2e; padding: .5rem; border-radius: .25rem; overflow-x:auto; }
-    h1, h2, h3 { color: var(--palette1-text); }
+    body {
+      font-family: 'Raleway', sans-serif;
+      background: var(--dynamic-bg);
+      color: var(--dynamic-text);
+      margin: 0;
+      padding: 2rem;
+    }
+    #docs {
+      max-width: 800px;
+      margin: auto;
+    }
+    pre {
+      background: var(--dynamic-bg);
+      color: var(--dynamic-text);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      border: 1px solid var(--dynamic-text);
+    }
+    code {
+      background: var(--dynamic-bg);
+      color: var(--dynamic-text);
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.25rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    h1, h2, h3 {
+      color: var(--dynamic-text);
+      margin-top: 1.5rem;
+    }
+    a {
+      color: var(--dynamic-text);
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
