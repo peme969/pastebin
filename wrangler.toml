@@ -3,7 +3,7 @@ main = "src/index.js"
 compatibility_date = "2025-07-29"
 account_id = "dd7ad106d2c75ed5b43e1fdb13293d57"
 routes = [
-    { pattern = "pastebin.peme969.dev/*", zone_id = "6119fc73cfa003d13edb85687c02e991" },
+    { pattern = "paste.peme969.dev/*", zone_id = "6119fc73cfa003d13edb85687c02e991" },
 ]
 kv_namespaces = [
     { binding = "Pastebin", id = "7511b61ec1a8423bb1903a4960ac7308" },
