@@ -1,7 +1,7 @@
 import html from './index.html';
 import docsHtml from './docs.html';
 import apiDocs from './api-docs.txt';
-import styleCss from './style.css';
+import styleCss from './style.txt';
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -72,9 +72,12 @@ export default {
               headers: { 'Content-Type': 'text/html', ...getCORSHeaders() }
             });
           }
-          if (path === '/style.css') {
+          if (url.pathname === '/style.css') {
             return new Response(styleCss, {
-              headers: { 'Content-Type': 'text/css', ...getCORSHeaders() }
+              headers: {
+                'Content-Type': 'text/css',
+                ...getCORSHeaders(),
+              },
             });
           }
         if (path.startsWith("/api/")) {
