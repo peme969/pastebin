@@ -3,56 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>API Documentation</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <title>Pastebin API Documentation</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
   <style>
-    body {
-      font-family: 'Raleway', sans-serif;
-      background: var(--dynamic-bg);
-      color: var(--dynamic-text);
-      margin: 0;
-      padding: 2rem;
-    }
+    /* Docs page overrides */
     #docs {
       max-width: 800px;
-      margin: auto;
+      margin: 2rem auto;
+      text-align: left;
+      line-height: 1.6;
+    }
+    #docs h1, #docs h2, #docs h3 {
+      color: var(--palette1-text);
+      margin-top: 1.5rem;
+    }
+    #docs p, #docs ul, #docs ol, #docs table {
+      color: var(--palette1-text);
+    }
+    hr {
+      border: none;
+      border-top: 1px solid var(--palette1-text);
+      margin: 2rem 0;
     }
     pre {
-      background: var(--dynamic-bg);
-      color: var(--dynamic-text);
+      background: var(--palette3-bg);
+      color: var(--palette3-text);
       padding: 1rem;
       border-radius: 0.5rem;
       overflow-x: auto;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
-      border: 1px solid var(--dynamic-text);
+      border: 1px solid var(--palette1-text);
     }
     code {
-      background: var(--dynamic-bg);
-      color: var(--dynamic-text);
+      background: var(--palette3-bg);
+      color: var(--palette3-text);
       padding: 0.2rem 0.4rem;
       border-radius: 0.25rem;
       font-family: 'JetBrains Mono', monospace;
     }
-    h1, h2, h3 {
-      color: var(--dynamic-text);
-      margin-top: 1.5rem;
-    }
     a {
-      color: var(--dynamic-text);
+      color: var(--palette1-text);
       text-decoration: underline;
     }
-     h1 {
-   color: var(--dynamic-text);
-   margin-top: 1.5rem;
-   text-align: center;
- }
   </style>
 </head>
 <body>
   <h1>Pastebin API Documentation</h1>
   <div id="docs"></div>
+
   <script>
     fetch('/api/docs')
       .then(res => res.text())
