@@ -1,5 +1,5 @@
 import { getAssetFromKV } from "@cloudflare/kv-asset-handler";
-
+import { mapRequestToAsset } from "@cloudflare/kv-asset-handler";
 export default {
   // fetch() now has three args: request, env, and ctx
   async fetch(request, env, ctx) {
@@ -15,7 +15,8 @@ export default {
       return await getAssetFromKV({
         request,
         env,
-        waitUntil: ctx.waitUntil, // so assets can be streamed properly
+        waitUntil: ctx.waitUntil, // so assets can be streamed properly,
+        mapRequestToAsset,
       });
     } catch (err) {
       // e.g. asset not found
