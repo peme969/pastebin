@@ -1,4 +1,6 @@
 import html from './index.html';
+import docsHtml from './docs.html';
+import apiDocsMd from './api-docs.md';
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -63,12 +65,19 @@ export default {
                 
               });
           }
-        
+          if (url.pathname === '/docs') {
+            return new Response(docsHtml, {
+              status: 200,
+              headers: { 'Content-Type': 'text/html', ...getCORSHeaders() }
+            });
+          }
+          
         if (path.startsWith("/api/")) {
-            const authHeader = request.headers.get("Authorization");
-            if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
-                return new Response("Unauthorized", { status: 401 , headers: { "Content-Type": "application/json", ...getCORSHeaders()} });
-            }
+            if (url.pathname === '/api/docs') {
+                return new Response(apiDocsMd, {
+                  headers: { 'Content-Type': 'text/plain', ...getCORSHeaders() }
+                });
+              }
             if (url.pathname === "/api/auth") {
                 const authHeader = request.headers.get("Authorization");
                 if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
