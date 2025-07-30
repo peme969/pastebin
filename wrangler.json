@@ -7,6 +7,10 @@
   "observability": {
     "enabled": true
   },
+  "route": {
+    "pattern": "paste.peme969.dev/*",
+    "zone_name": "peme969.dev"
+  },
   "kv_namespaces": [
     {
       "binding": "Pastebin",
