@@ -59,13 +59,13 @@ export default {
         //if (path === "/") {
         //    return new Response("Hello, World! New UI for the home route coming soon :)", { status: 200 });
         //}
-        if (url.pathname === "/") {
+        if (url.pathname === "/" || url.pathname === "") {
             return new Response(html, {
                 headers: { 'Content-Type': 'text/html',...getCORSHeaders() },
                 
               });
           }
-          if (url.pathname === '/docs') {
+          if (url.pathname === '/docs' || url.pathname === '/docs/') {
             return new Response(docsHtml, {
               status: 200,
               headers: { 'Content-Type': 'text/html', ...getCORSHeaders() }
@@ -73,9 +73,10 @@ export default {
           }
           
         if (path.startsWith("/api/")) {
-            if (url.pathname === '/api/docs') {
+            if (url.pathname === '/api/docs' || url.pathname === '/api/docs/') {
                 return new Response(apiDocsMd, {
-                  headers: { 'Content-Type': 'text/plain', ...getCORSHeaders() }
+                    status: 200,
+                    headers: { "Content-Type": "text/markdown", ...getCORSHeaders() }
                 });
               }
             if (url.pathname === "/api/auth") {
