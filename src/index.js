@@ -53,11 +53,11 @@ export default {
 
       // Create paste
       if (path === '/api/create' && method === 'POST') {
-        // Parse and sanitize JSON body (handle curly quotes)
+        // Read raw body and sanitize
         let raw;
         try {
           raw = await request.text();
-        } catch (err) {
+        } catch {
           return new Response(
             JSON.stringify({ success: false, error: 'Invalid JSON body' }),
             { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
@@ -75,7 +75,7 @@ export default {
         }
         const { text, expiration, slug } = body;
 
-        // Determine user timezone (fallback to America/Chicago)
+        // Determine user timezone
         const userTZ = (request.cf && request.cf.timezone) || 'America/Chicago';
         const dt = DateTime.fromFormat(expiration, 'yyyy-MM-dd hh:mm a', { zone: userTZ });
         if (!dt.isValid) {
@@ -84,17 +84,19 @@ export default {
             { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
           );
         }
-        const isDST = dt.isInDST;
-        const tzAbbr = dt.offsetNameShort;
+        // Compute expiration timestamp
         const expiresAtUtc = dt.toUTC().toMillis();
         const nowUtc = Date.now();
-        const expirationInSeconds = Math.floor((expiresAtUtc - nowUtc) / 1000);
+        const expirationInSeconds = Math.max(0, Math.floor((expiresAtUtc - nowUtc) / 1000));
         const formattedExpiration = dt.setZone(userTZ).toLocaleString(DateTime.DATETIME_FULL);
+        const tzAbbr = dt.offsetNameShort;
+        const isDST = dt.isInDST;
         const generatedSlug = slug || generateRandomSlug();
 
+        // Store text and metadata including expiration timestamp
         await PASTEBIN_KV.put(
           generatedSlug,
-          JSON.stringify({ text, metadata: { expirationInSeconds, formattedExpiration, createdAt: nowUtc, tzAbbr, isDST } })
+          JSON.stringify({ text, metadata: { expiresAtUtc, formattedExpiration, createdAt: nowUtc, tzAbbr, isDST } })
         );
 
         return new Response(
@@ -136,8 +138,19 @@ export default {
           );
         }
         const data = JSON.parse(value);
+        const nowUtc = Date.now();
+        // Delete and 404 if expired
+        if (nowUtc >= data.metadata.expiresAtUtc) {
+          await PASTEBIN_KV.delete(slug);
+          return new Response(
+            JSON.stringify({ success: false, error: 'Expired' }),
+            { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+        }
+        // Compute remaining seconds
+        const expirationInSeconds = Math.floor((data.metadata.expiresAtUtc - nowUtc) / 1000);
         return new Response(
-          JSON.stringify({ success: true, text: data.text, metadata: data.metadata }),
+          JSON.stringify({ success: true, text: data.text, metadata: { ...data.metadata, expirationInSeconds } }),
           { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
       }
@@ -153,6 +166,11 @@ export default {
           return new Response('Not Found', { status: 404, headers: corsHeaders });
         }
         const data = JSON.parse(value);
+        const nowUtc = Date.now();
+        if (nowUtc >= data.metadata.expiresAtUtc) {
+          await PASTEBIN_KV.delete(slug);
+          return new Response('Expired', { status: 404, headers: corsHeaders });
+        }
         return new Response(
           renderPastePage(data.text, slug, data.metadata),
           { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } }
@@ -167,6 +185,11 @@ export default {
         const value = await PASTEBIN_KV.get(slug);
         if (value) {
           const data = JSON.parse(value);
+          const nowUtc = Date.now();
+          if (nowUtc >= data.metadata.expiresAtUtc) {
+            await PASTEBIN_KV.delete(slug);
+            return new Response('Expired', { status: 404, headers: corsHeaders });
+          }
           return new Response(
             renderPastePage(data.text, slug, data.metadata),
             { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } }
@@ -199,7 +222,6 @@ function renderPastePage(text, slug, metadata) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  // Inline metadata: show expiration datetime instead of seconds
   const metaInline = `Created: ${new Date(metadata.createdAt).toLocaleString()} ${metadata.tzAbbr} | Expires at: ${metadata.formattedExpiration}`;
   return `<!DOCTYPE html>
 <html lang="en">
