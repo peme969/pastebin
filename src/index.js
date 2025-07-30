@@ -199,8 +199,8 @@ function renderPastePage(text, slug, metadata) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  // Inline metadata
-  const metaInline = `Created: ${new Date(metadata.createdAt).toLocaleString()} ${metadata.tzAbbr} | Expires: ${metadata.expirationInSeconds}s`;
+  // Inline metadata: show expiration datetime instead of seconds
+  const metaInline = `Created: ${new Date(metadata.createdAt).toLocaleString()} ${metadata.tzAbbr} | Expires at: ${metadata.formattedExpiration}`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,15 +210,16 @@ function renderPastePage(text, slug, metadata) {
   <link rel="stylesheet" href="/style.css">
   <style>
     pre code {
-      background-color: #f5f5f5;
+      background-color: #607D8B;
       padding: 1em;
       display: block;
-      margin: 1em 0;
+      margin: 1em auto;
       border-radius: 4px;
       white-space: pre-wrap;
+      width: 50%;
     }
     code {
-      background-color: #f5f5f5;
+      background-color: #607D8B;
       padding: 0.2em 0.4em;
       border-radius: 3px;
     }
