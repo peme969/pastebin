@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Documentation</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { font-family: 'Raleway', sans-serif; padding: 2rem; background: var(--palette1-bg); color: var(--palette1-text); }
+    pre, code { background: #2e2e2e; padding: .5rem; border-radius: .25rem; overflow-x:auto; }
+    h1, h2, h3 { color: var(--palette1-text); }
+  </style>
+</head>
+<body>
+  <h1>Pastebin API Documentation</h1>
+  <div id="docs"></div>
+  <script>
+    fetch('/api/docs')
+      .then(res => res.text())
+      .then(md => {
+        document.getElementById('docs').innerHTML = marked.parse(md);
+      })
+      .catch(err => {
+        document.getElementById('docs').innerText = 'Failed to load documentation.';
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
