@@ -208,11 +208,26 @@ function renderPastePage(text, slug, metadata) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Paste: ${slug}</title>
   <link rel="stylesheet" href="/style.css">
+  <style>
+    pre code {
+      background-color: #f5f5f5;
+      padding: 1em;
+      display: block;
+      margin: 1em 0;
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+    code {
+      background-color: #f5f5f5;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+    }
+  </style>
 </head>
 <body>
   <article>
     <h1>Paste: ${slug}</h1>
-    <p>${metaInline}</p>
+    <p><code>${metaInline}</code></p>
     <pre><code>${escaped}</code></pre>
   </article>
 </body>
