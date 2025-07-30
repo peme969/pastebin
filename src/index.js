@@ -101,13 +101,19 @@ export default {
                     headers: { "Content-Type": "application/json", ...getCORSHeaders() } 
                 });
             }
-            
-            if (url.pathname === "/api/auth") {
-                return new Response("Authorized", { 
-                    status: 200, 
-                    headers: { "Content-Type": "application/json", ...getCORSHeaders() } 
-                });
-            }
+            // GET /api/auth — just verifies the Bearer token
+if (pathname === "/api/auth" && request.method === "GET") {
+    const badAuth = requireAuth();
+    if (badAuth) return badAuth;
+    return new Response(JSON.stringify({ authorized: true }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  }
+  
             
             if (path.startsWith("/api/create") && method === "POST") {
                 const { text, password = null, expiration = null, slug = null } = await request.json();
@@ -262,11 +268,12 @@ export default {
         }
         
         // If nothing matches, return 404
-        return new Response("Not found", { 
+        return new Response("Not found moi", { 
             status: 404,
             headers: getCORSHeaders()
         });
     }
+    
 };
 
 function getCORSHeaders() {
