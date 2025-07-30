@@ -22,11 +22,9 @@ export default {
     if (path === '/' || path === '') {
       return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
     }
-
     if (path === '/docs' || path === '/docs/') {
       return new Response(docsHtml, { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
     }
-
     if (path === '/style.css') {
       return new Response(styleCss, { status: 200, headers: { 'Content-Type': 'text/css', ...corsHeaders } });
     }
@@ -42,118 +40,91 @@ export default {
       if (path === '/api/auth') {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
-          return new Response(
-            JSON.stringify({ success: false, error: 'Unauthorized' }),
-            { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-          );
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }),
+            { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
         }
-        return new Response(
-          JSON.stringify({ success: true }),
-          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
       }
 
       // Create paste
       if (path === '/api/create' && method === 'POST') {
         const { text, expiration, slug } = await request.json();
-
-        // Determine user timezone (CF Workers), fallback to America/Chicago
         const userTZ = (request.cf && request.cf.timezone) || 'America/Chicago';
-
-        // Parse expiration in user timezone
         const dt = DateTime.fromFormat(expiration, 'yyyy-MM-dd hh:mm a', { zone: userTZ });
         if (!dt.isValid) {
-          return new Response(
-            JSON.stringify({ success: false, error: 'Bad expiration format' }),
-            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-          );
+          return new Response(JSON.stringify({ success: false, error: 'Bad expiration format' }),
+            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
         }
-
-        // DST detection and abbreviation
         const isDST = dt.isInDST;
         const tzAbbr = dt.offsetNameShort;
-
-        // Compute expiration seconds until expiration
         const expiresAtUtc = dt.toUTC().toMillis();
         const nowUtc = Date.now();
         const expirationInSeconds = Math.floor((expiresAtUtc - nowUtc) / 1000);
-
-        // Format expiration for response (includes locale-specific formatting)
         const formattedExpiration = dt.setZone(userTZ).toLocaleString(DateTime.DATETIME_FULL);
-
-        // Generate or use provided slug
         const generatedSlug = slug || generateRandomSlug();
 
-        // Store paste in KV
-        await PASTEBIN_KV.put(
-          generatedSlug,
+        await PASTEBIN_KV.put(generatedSlug,
           JSON.stringify({ text, metadata: { expirationInSeconds, formattedExpiration, createdAt: nowUtc, tzAbbr, isDST } })
         );
 
-        return new Response(
-          JSON.stringify({
-            success: true,
-            slug: generatedSlug,
-            expirationInSeconds,
-            formattedExpiration,
-            timezone: tzAbbr,
-            isDST,
-          }),
-          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+        return new Response(JSON.stringify({ success: true, slug: generatedSlug, expirationInSeconds, formattedExpiration, timezone: tzAbbr, isDST }),
+          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
       }
 
       // Delete paste
       if (path === '/api/delete' && method === 'DELETE') {
         const { slug } = await request.json();
         if (!slug) {
-          return new Response(
-            JSON.stringify({ success: false, error: 'Missing slug' }),
-            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-          );
+          return new Response(JSON.stringify({ success: false, error: 'Missing slug' }),
+            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
         }
         await PASTEBIN_KV.delete(slug);
-        return new Response(
-          JSON.stringify({ success: true }),
-          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+        return new Response(JSON.stringify({ success: true }),
+          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
       }
 
-      // View paste via API
+      // View paste (JSON)
       if (path === '/api/view' && method === 'GET') {
         const slug = url.searchParams.get('slug');
         if (!slug) {
-          return new Response(
-            JSON.stringify({ success: false, error: 'Missing slug' }),
-            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-          );
+          return new Response(JSON.stringify({ success: false, error: 'Missing slug' }),
+            { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
         }
         const value = await PASTEBIN_KV.get(slug);
         if (!value) {
-          return new Response(
-            JSON.stringify({ success: false, error: 'Not found' }),
-            { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-          );
+          return new Response(JSON.stringify({ success: false, error: 'Not found' }),
+            { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
         }
         const data = JSON.parse(value);
-        return new Response(
-          JSON.stringify({ success: true, text: data.text, metadata: data.metadata }),
-          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+        return new Response(JSON.stringify({ success: true, text: data.text, metadata: data.metadata }),
+          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+      }
+
+      // View paste (HTML) at /api/view/:slug
+      if (path.startsWith('/api/view/') && method === 'GET') {
+        const slug = path.replace('/api/view/', '');
+        if (!slug) {
+          return new Response('Not Found', { status: 404, headers: corsHeaders });
+        }
+        const value = await PASTEBIN_KV.get(slug);
+        if (!value) {
+          return new Response('Not Found', { status: 404, headers: corsHeaders });
+        }
+        const data = JSON.parse(value);
+        return new Response(renderPastePage(data.text, slug, data.metadata),
+          { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
       }
     }
 
-    // Default paste view (render HTML)
+    // Default paste view (rooted at /:slug)
     if (method === 'GET') {
       const slug = path.startsWith('/') ? path.slice(1) : path;
       if (slug) {
         const value = await PASTEBIN_KV.get(slug);
         if (value) {
           const data = JSON.parse(value);
-          return new Response(
-            renderPastePage(data.text, slug, data.metadata),
-            { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } }
-          );
+          return new Response(renderPastePage(data.text, slug, data.metadata),
+            { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
         }
       }
     }
