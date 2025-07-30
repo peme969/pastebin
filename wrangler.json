@@ -20,7 +20,8 @@
   "build": {
     "esbuild": {
       "loader": {
-        ".css": "text"
+        ".css": "text",
+        ".md": "text"
       }
     }
   }

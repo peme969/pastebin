@@ -72,10 +72,13 @@ export default {
               headers: { 'Content-Type': 'text/html', ...getCORSHeaders() }
             });
           }
-          if (url.pathname === '/style.css') {
+          if (path === '/style.css') {
             return new Response(styleCss, {
               status: 200,
-              headers: { 'Content-Type': 'text/css' , ...getCORSHeaders() }
+              headers: {
+                'Content-Type': 'text/css',
+                ...getCORSHeaders()
+              }
             });
           }
         if (path.startsWith("/api/")) {
