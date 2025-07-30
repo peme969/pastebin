@@ -2,7 +2,7 @@ import html from './index.html';
 import docsHtml from './docs.html';
 import apiDocs from './api-docs.txt';
 import styleCss from './style.txt';
-import { DateTime } from 'luxon';
+import { DateTime } from 'https://esm.sh/luxon@3.3.0';
 
 export default {
   async fetch(request, env) {
