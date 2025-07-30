@@ -16,5 +16,12 @@
       "binding": "Pastebin",
       "id": "7511b61ec1a8423bb1903a4960ac7308"
     }
-  ]
+  ],
+  "build": {
+    "esbuild": {
+      "loader": {
+        ".md": "text"
+      }
+    }
+  }
 }
