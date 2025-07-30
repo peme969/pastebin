@@ -57,7 +57,7 @@ export default {
       if (path === '/api/create' && method === 'POST') {
         const { text, expiration, slug } = await request.json();
 
-        // Determine user timezone (CF Workers) with fallback
+        // Determine user timezone (CF Workers), fallback to America/Chicago
         const userTZ = (request.cf && request.cf.timezone) || 'America/Chicago';
 
         // Parse expiration in user timezone
@@ -69,12 +69,16 @@ export default {
           );
         }
 
+        // DST detection and abbreviation
+        const isDST = dt.isInDST;
+        const tzAbbr = dt.offsetNameShort;
+
         // Compute expiration seconds until expiration
         const expiresAtUtc = dt.toUTC().toMillis();
         const nowUtc = Date.now();
         const expirationInSeconds = Math.floor((expiresAtUtc - nowUtc) / 1000);
 
-        // Format expiration for response
+        // Format expiration for response (includes locale-specific formatting)
         const formattedExpiration = dt.setZone(userTZ).toLocaleString(DateTime.DATETIME_FULL);
 
         // Generate or use provided slug
@@ -83,7 +87,7 @@ export default {
         // Store paste in KV
         await PASTEBIN_KV.put(
           generatedSlug,
-          JSON.stringify({ text, metadata: { expirationInSeconds, formattedExpiration, createdAt: nowUtc } })
+          JSON.stringify({ text, metadata: { expirationInSeconds, formattedExpiration, createdAt: nowUtc, tzAbbr, isDST } })
         );
 
         return new Response(
@@ -92,6 +96,8 @@ export default {
             slug: generatedSlug,
             expirationInSeconds,
             formattedExpiration,
+            timezone: tzAbbr,
+            isDST,
           }),
           { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
         );
@@ -187,7 +193,7 @@ function renderPastePage(text, slug, metadata) {
 <body>
   <article>
     <h1>Paste: ${slug}</h1>
-    <p>Created at: ${new Date(metadata.createdAt).toLocaleString()}</p>
+    <p>Created at: ${new Date(metadata.createdAt).toLocaleString()} ${metadata.tzAbbr}</p>
     <p>Expires in: ${metadata.expirationInSeconds} seconds</p>
     <pre>${escaped}</pre>
   </article>
