@@ -71,8 +71,8 @@
         </p>
     </div>
         <script>
-            $(function() {
-  const $submitBtn  = $('#create');
+ $(function() {
+  const $submitBtn  = $('#create');           // changed from .create-btn
   const $expiration = $('#expiration-input');
   const $result     = $('#result');
 
@@ -96,66 +96,71 @@
     return true;
   }
 
+  // Run validation whenever the expiration field changes
   $expiration.on('input', validateExpiration);
 
+  // Form submit handler
   $('.create-form').submit(function(e) {
-            e.preventDefault();
-            if (!validateExpiration()) return;
+    e.preventDefault();
 
-            const secret     = $('#secret-input').val().trim();
-            const slug       = $('#slug-input').val().trim();
-            const content    = $('#paste-content').val();
-            const expiration = $expiration.val().trim();
+    // re-validate before proceeding
+    if (!validateExpiration()) return;
 
+    const secret     = $('#secret-input').val().trim();
+    const slug       = $('#slug-input').val().trim();
+    const content    = $('#paste-content').val();
+    const expiration = $expiration.val().trim();
+
+    $result
+      .removeClass('good bad')
+      .text('Checking credentials…');
+
+    // Step 1: Auth
+    $.ajax({
+      url: 'https://paste.peme969.dev/api/auth',
+      type: 'POST',
+      headers: { 'Authorization': 'Bearer ' + secret },
+      success() {
+        $result.text('Authorized! Creating paste…').addClass('good');
+
+        let payload = { text: content, expiration };
+        if (slug) payload.slug = slug;
+
+        // Step 2: Create
+        $.ajax({
+          url: 'https://paste.peme969.dev/api/create',
+          type: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + secret,
+            'Content-Type': 'application/json'
+          },
+          data: JSON.stringify(payload),
+          success(res) {
             $result
-            .removeClass('good bad')
-            .text('Checking credentials…');
-
-            // 1) Auth
-            $.ajax({
-            url: 'https://paste.peme969.dev/api/auth',
-            type: 'POST',
-            headers: { 'Authorization': 'Bearer ' + secret },
-            success() {
-                $result.text('Authorized! Creating paste…').addClass('good');
-
-                let payload = { text: content, expiration };
-                if (slug) payload.slug = slug;
-
-                // 2) Create
-                $.ajax({
-                url: 'https://paste.peme969.dev/api/create',
-                type: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + secret,
-                    'Content-Type': 'application/json'
-                },
-                data: JSON.stringify(payload),
-                success(res) {
-                    $result
-                    .html(
-                        `✅ Paste created!<br>` +
-                        `<a href="/api/view/${res.slug}" target="_blank">${res.slug}</a><br>` +
-                        `Expires at: ${res.formattedExpiration}`
-                    )
-                    .addClass('good');
-                },
-                error(xhr) {
-                    $result
-                    .text('Error creating paste: ' + (xhr.responseJSON?.error || xhr.statusText))
-                    .addClass('bad');
-                }
-                });
-            },
-            error(xhr) {
-                const msg = xhr.status === 401
-                ? 'Unauthorized! Wrong Secret Key.'
-                : 'Error authenticating. Please try again.';
-                $result.text(msg).addClass('bad');
-            }
-            });
+              .html(
+                `✅ Paste created!<br>` +
+                `<a href="/api/view/${res.slug}" target="_blank">${res.slug}</a><br>` +
+                `Expires at: ${res.formattedExpiration}`
+              )
+              .addClass('good');
+          },
+          error(xhr) {
+            $result
+              .text('Error creating paste: ' + (xhr.responseJSON?.error || xhr.statusText))
+              .addClass('bad');
+          }
         });
-        });
+      },
+      error(xhr) {
+        const msg = xhr.status === 401
+          ? 'Unauthorized! Wrong Secret Key.'
+          : 'Error authenticating. Please try again.';
+        $result.text(msg).addClass('bad');
+      }
+    });
+  });
+});
+
 
 
             $('#mail').click(function() {
