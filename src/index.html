@@ -52,7 +52,7 @@
                 <input id="slug-input"        type="text"   placeholder="Slug (optional)" />
                 <input id="expiration-input"  type="text"   placeholder="YYYY-MM-DD hh:mm AM/PM" />
                 <textarea id="paste-content"  placeholder="Your paste here…"></textarea>
-                <button type="submit" class="create-btn" disabled>Create Paste</button>
+                <input type="submit" id="create" value="Create Paste"></input>
               </form>
             <div class="result-container">
               <h3 id="had">API Response:</h3>
@@ -72,7 +72,7 @@
     </div>
         <script>
             $(function() {
-  const $submitBtn  = $('.create-btn');
+  const $submitBtn  = $('#create');
   const $expiration = $('#expiration-input');
   const $result     = $('#result');
 
