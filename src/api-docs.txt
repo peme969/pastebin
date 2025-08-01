@@ -1,12 +1,12 @@
 
-A serverless pastebin API with expiration, password protection, and authentication, powered by Workers KV.
+A serverless paste API with expiration, password protection, and authentication, powered by Workers KV.
 
 ---
 
 ## 🌐 Base URL
 
 ```
-https://pastebin.peme969.dev
+https://paste.peme969.dev
 ```
 
 ---
@@ -39,7 +39,7 @@ The static HTML homepage.
 
 **Example:**
 ```bash
-curl https://pastebin.peme969.dev/
+curl https://paste.peme969.dev/
 ```
 
 ---
@@ -74,7 +74,7 @@ Create a new paste.
 
 **Example:**
 ```bash
-curl -X POST https://pastebin.peme969.dev/api/create \
+curl -X POST https://paste.peme969.dev/api/create \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"text":"My paste","expiration":"2025-08-01 10:00 AM","password":"1234"}'
@@ -91,7 +91,7 @@ List all valid (non-expired) pastes.
 
 **Example:**
 ```bash
-curl -H "Authorization: Bearer YOUR_API_KEY" https://pastebin.peme969.dev/api/view
+curl -H "Authorization: Bearer YOUR_API_KEY" https://paste.peme969.dev/api/view
 ```
 
 **Response:**
@@ -135,7 +135,7 @@ Authorization: Bearer <password>
 
 **Example:**
 ```bash
-curl -H "Authorization: Bearer 1234" https://pastebin.peme969.dev/api/view/my-paste
+curl -H "Authorization: Bearer 1234" https://paste.peme969.dev/api/view/my-paste
 ```
 
 ---
@@ -160,7 +160,7 @@ Delete a paste by slug.
 
 **Example:**
 ```bash
-curl -X DELETE https://pastebin.peme969.dev/api/delete \
+curl -X DELETE https://paste.peme969.dev/api/delete \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"slug":"abc123"}'
@@ -176,7 +176,7 @@ Fetch paste for public viewing (HTML).
 
 **Example:**
 ```bash
-curl https://pastebin.peme969.dev/abc123
+curl https://paste.peme969.dev/abc123
 ```
 
 ---
@@ -194,7 +194,7 @@ Verify API key.
 
 **Example:**
 ```bash
-curl -H "Authorization: Bearer YOUR_API_KEY" https://pastebin.peme969.dev/api/auth
+curl -H "Authorization: Bearer YOUR_API_KEY" https://paste.peme969.dev/api/auth
 ```
 
 ---
