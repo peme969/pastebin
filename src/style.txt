@@ -265,3 +265,6 @@ a {
   color: #41ff41;
   text-decoration-color: #FF9800;
 }
+a:hover {
+    text-decoration-color: #795548;
+}
