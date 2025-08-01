@@ -48,12 +48,13 @@
 
             </div>
             <form class="create-form">
-                <input id="secret-input"      type="text"   placeholder="Secret key" />
-                <input id="slug-input"        type="text"   placeholder="Slug (optional)" />
-                <input id="expiration-input"  type="text"   placeholder="YYYY-MM-DD hh:mm AM/PM" />
-                <textarea id="paste-content"  placeholder="Your paste here…"></textarea>
-                <input type="submit" id="create" value="Create Paste"></input>
-              </form>
+              <input id="secret-input"      type="text"     placeholder="Secret key" />
+              <input id="slug-input"        type="text"     placeholder="Slug (optional)" />
+              <input id="expiration-input"  type="text"     placeholder="YYYY-MM-DD hh:mm AM/PM" />
+              <input id="password-input"    type="password" placeholder="Password (optional)" />
+              <textarea id="paste-content"  placeholder="Your paste here…"></textarea>
+              <input type="submit" id="create" value="Create Paste" />
+            </form>            
             <div class="result-container">
               <h3 id="had">API Response:</h3>
                 <p id="result">Submit the Form to view the API's response...</p>
@@ -72,14 +73,10 @@
     </div>
         <script>
  $(function() {
-  const $submitBtn  = $('#create');           // changed from .create-btn
+  const $submitBtn  = $('#create');          
   const $expiration = $('#expiration-input');
   const $result     = $('#result');
-
-  // regex for "2025-07-30 04:00 PM"
   const expPattern = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} (AM|PM)$/;
-
-  // Validate expiration & toggle button
   function validateExpiration() {
     const val = $expiration.val().trim();
     if (!expPattern.test(val)) {
@@ -90,7 +87,6 @@
       $submitBtn.prop('disabled', true);
       return false;
     }
-    // clear message & enable
     $result.text('').removeClass('bad good');
     $submitBtn.prop('disabled', false);
     return true;
@@ -110,6 +106,7 @@
     const slug       = $('#slug-input').val().trim();
     const content    = $('#paste-content').val();
     const expiration = $expiration.val().trim();
+    const password   = $('#password-input').val().trim(); 
 
     $result
       .removeClass('good bad')
@@ -125,7 +122,7 @@
 
         let payload = { text: content, expiration };
         if (slug) payload.slug = slug;
-
+        if (password) payload.password = password;   
         // Step 2: Create
         $.ajax({
           url: 'https://paste.peme969.dev/api/create',

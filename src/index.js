@@ -274,12 +274,14 @@ function renderPastePage(text, slug, metadata) {
       border-radius: 4px;
       white-space: pre-wrap;
       width: 50%;
+      max-height: 70vh; overflow: auto;
     }
     code {
       background-color: #607D8B;
       padding: 0.2em 0.4em;
       border-radius: 3px;
     }
+      
   </style>
 </head>
 <body>
