@@ -139,7 +139,7 @@
             $result
               .html(
                 `✅ Paste created!<br>` +
-                `<a href="/api/view/${res.slug}" target="_blank">${res.slug}</a><br>` +
+                `View paste: <a href="/api/view/${res.slug}" target="_blank">${res.slug}</a><br>` +
                 `Expires at: ${res.formattedExpiration}`
               )
               .addClass('good');

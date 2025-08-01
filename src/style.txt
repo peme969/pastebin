@@ -261,3 +261,7 @@ textarea:focus {
 .bad {
   color: red;
 }
+a {
+  color: #41ff41;
+  text-decoration-color: #FF9800;
+}
