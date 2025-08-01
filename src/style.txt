@@ -70,11 +70,41 @@ input[type="password"] {
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
+  border-radius: 4px;
+  transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+/* Password-specific adjustments */
+#password-input {
+  width: 25%;
+  background-color: #313131;
+  border: solid 3px #313131;
+  border-radius: 4px;
+  padding: 12px;
+  color: #ffffff;
+  text-align: center;
+  font-size: 18px;
+  font-family: "Raleway", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+#password-input::placeholder {
+  color: #888;
+  font-style: italic;
+  font-size: 18px;
+  font-family: "Raleway", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
 }
 
 input[type="password"]:focus,
-input[type="text"]:focus {
+input[type="text"]:focus,
+#password-input:focus {
   border-color: var(--dynamic-text);
+  background-color: #404040;
   outline: none;
 }
 
@@ -261,10 +291,12 @@ textarea:focus {
 .bad {
   color: red;
 }
+
 a {
   color: #41ff41;
   text-decoration-color: #FF9800;
 }
+
 a:hover {
-    text-decoration-color: #795548;
+  text-decoration-color: #795548;
 }
