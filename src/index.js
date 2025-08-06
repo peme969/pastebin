@@ -2,7 +2,7 @@ import html from "./index.html";
 import docsHtml from "./docs.html";
 import styleCss from "./style.txt";
 import siteWebmanifest from "./site.webmanifest.txt";
-import faviconIco from "./favicon.ico.txt";
+import faviconIco from "./favicon.txt";
 import favicon16 from "./favicon-16x16.txt";
 import favicon32 from "./favicon-32x32.txt";
 import appleIcon from "./apple-touch-icon.txt";
