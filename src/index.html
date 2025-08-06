@@ -1,229 +1,339 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" style="--dynamic-bg: #282c34; --dynamic-text: #ffa200">
     <head>
-        <link rel="icon" type="image/x-icon" href="./favicon.ico">
-        <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
-        <link rel="manifest" href="./site.webmanifest">
-        <meta name="title" content="Peme969’s Pastebin">
-        <meta name="description" content="Peme969’s Personal Pastebin 
-        Email me for a temp key 🔑">
-        <meta name="keywords" content="bio, personal pastebin, peme969, peme969’s site, blog, cool, epic, fun, github, cloudflare, cloudflare-pages, cloudflare-workers, link-shortener">
-        <meta name="robots" content="index, follow">
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <meta name="language" content="English">
-        <meta name="revisit-after" content="10 days">
-        <meta name="author" content="Peme969">
-        <meta name="title" content="Peme969’s Personal Pastebin" />
-        <meta name="description" content="Peme969’s Personal Pastebin.
-        Email me for a temp key 🔑" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://paste.peme969.dev" />
-        <meta property="og:title" content="Peme969’s Personal Pastebin" />
-        <meta property="og:description" content="Peme969’s Personal Pastebin.
-        Email me for a temp key 🔑" />
-        <meta property="og:image" content="./favicon.ico" />
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://paste.peme969.dev" />
-        <meta property="twitter:title" content="Peme969’s Personal Pastebin" />
-        <meta property="twitter:description" content="Peme969’s Personal Pastebin.
-        Email me for a temp key 🔑" />
-        <meta property="twitter:image" content="/favicon.ico" />
         <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="title" content="Peme969’s Pastebin" />
+        <meta
+            name="description"
+            content="Peme969’s Personal Pastebin Email me for a temp key 🔑"
+        />
+        <meta
+            name="keywords"
+            content="bio, personal pastebin, peme, cloudflare, cloudflare-pages, cloudflare-workers, pastebin"
+        />
+        <meta name="robots" content="index, follow" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="language" content="English" />
+        <meta name="revisit-after" content="10 days" />
+        <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="./apple-touch-icon.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="./favicon-32x32.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="./favicon-16x16.png"
+        />
+        <link rel="manifest" href="./site.webmanifest" />
         <title>My Pastebin 🌙🌌</title>
         <link rel="stylesheet" href="./style.css" />
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     </head>
     <body>
-        <select class="palette-dropdown" id="palette-selector">
-            <option value="DarkSky">Dark Sky</option>
-            <option value="DeepOcean">DeepOcean</option>
-        </select>
-        <h1>Peme969's Pastebin</h1>
+        <div class="navbar">
+            <select class="palette-dropdown" id="palette-selector">
+                <option value="DarkSky">Dark Sky</option>
+                <option value="DeepOcean">DeepOcean</option>
+            </select>
+            <h1>Peme969's Pastebin</h1>
+        </div>
         <div class="container">
-            <div class="navbar">
-
+            <!-- TABS NAV -->
+            <div class="tabs">
+                <div class="tab active" data-target="#create-tab">
+                    Create Paste
+                </div>
+                <div class="tab" data-target="#manage-tab">Manage Pastes</div>
             </div>
-            <form class="create-form">
-              <input id="secret-input"      type="text"     placeholder="Secret key" />
-              <input id="slug-input"        type="text"     placeholder="Slug (optional)" />
-              <input id="expiration-input"  type="text"     placeholder="YYYY-MM-DD hh:mm AM/PM" />
-              <input id="password-input"    type="password" placeholder="Password (optional)" />
-              <textarea id="paste-content"  placeholder="Your paste here…"></textarea>
-              <input type="submit" id="create" value="Create Paste" />
-            </form>            
-            <div class="result-container">
-              <h3 id="had">API Response:</h3>
-                <p id="result">Submit the Form to view the API's response...</p>
+
+            <!-- CREATE PANEL -->
+            <div id="create-tab" class="tab-content active">
+                <form class="create-form">
+                    <input
+                        id="secret-input"
+                        type="text"
+                        placeholder="Secret Key"
+                        required
+                    />
+                    <input
+                        id="slug-input"
+                        type="text"
+                        placeholder="Slug (optional)"
+                    />
+                    <input
+                        id="expiration-input"
+                        type="text"
+                        placeholder="YYYY-MM-DD hh:mm AM/PM (optional)"
+                    />
+                    <input
+                        id="password-input"
+                        type="password"
+                        placeholder="Password (optional)"
+                    />
+                    <textarea
+                        id="paste-content"
+                        placeholder="Your paste here…"
+                        required
+                    ></textarea>
+                    <input type="submit" id="create" value="Create Paste" />
+                </form>
+                <div class="result-container">
+                    <h3 id="had">API Response:</h3>
+                    <p id="result">Submit the form to create a paste...</p>
+                </div>
+            </div>
+
+            <!-- MANAGE PANEL -->
+            <div id="manage-tab" class="tab-content">
+                <div class="manage-inputs">
+                    <input
+                        id="manage-secret"
+                        type="text"
+                        placeholder="Secret Key (optional)"
+                    />
+                    <button id="load-pastes" class="btn">Load My Pastes</button>
+                </div>
+                <table id="pastes-table">
+                    <thead>
+                        <tr>
+                            <th>Paste Slug</th>
+                            <th>Created</th>
+                            <th>Expires At</th>
+                            <th>Password</th>
+                            <th>Content</th>
+                            <th>View</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="manage-info" class="info-box">
+                    Click “Load My Pastes” to view and manage your pastes.
+                </div>
             </div>
         </div>
-    <div class="check">
-        <label for="toggle" class="keyer">
-            <svg id='key' xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M11 18Zm-7 2q-.425 0-.713-.288T3 19v-1.8q0-.85.438-1.563T4.6 14.55q1.55-.775 3.15-1.163T11 13q.5 0 1 .038t1 .112q-.05.525.025 1.05t.25 1.025q-.575-.125-1.137-.175T11 15q-1.4 0-2.775.338T5.5 16.35q-.225.125-.363.35T5 17.2v.8h10.5v2H4Zm14.65 2.65l-.85-.85q-.15-.15-.225-.338t-.075-.387V16.85q-1.1-.325-1.8-1.238T15 13.5q0-1.45 1.025-2.475T18.5 10q1.45 0 2.475 1.025T22 13.5q0 1.125-.638 2t-1.612 1.25l.9.9q.15.15.15.35t-.15.35l-.8.8q-.15.15-.15.35t.15.35l.8.8q.15.15.15.35t-.15.35l-1.3 1.3q-.15.15-.35.15t-.35-.15ZM18.5 14q.425 0 .713-.288T19.5 13q0-.425-.288-.713T18.5 12q-.425 0-.713.288T17.5 13q0 .425.288.713T18.5 14ZM11 12q-1.65 0-2.825-1.175T7 8q0-1.65 1.175-2.825T11 4q1.65 0 2.825 1.175T15 8q0 1.65-1.175 2.825T11 12Zm0-2q.825 0 1.413-.588T13 8q0-.825-.588-1.413T11 6q-.825 0-1.413.588T9 8q0 .825.588 1.413T11 10Zm0-2Z"/>
-            </svg>
-        </label>
-        <input type="checkbox" id="toggle" hidden>
-        <p class="content">
-            Want to get the *secret* key? (🔑 expires after 24 hours (might vary)) Email me! <svg id='mail' xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffa200" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-        </p>
-    </div>
+
         <script>
- $(function() {
-  const $submitBtn  = $('#create');          
-  const $expiration = $('#expiration-input');
-  const $result     = $('#result');
-  const expPattern = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} (AM|PM)$/;
-  function validateExpiration() {
-    const val = $expiration.val().trim();
-    if (!expPattern.test(val)) {
-      $result
-        .text('⚠️ Expiration must be in format YYYY-MM-DD hh:mm AM/PM')
-        .addClass('bad')
-        .removeClass('good');
-      $submitBtn.prop('disabled', true);
-      return false;
-    }
-    $result.text('').removeClass('bad good');
-    $submitBtn.prop('disabled', false);
-    return true;
-  }
-
-  // Run validation whenever the expiration field changes
-  $expiration.on('input', validateExpiration);
-
-  // Form submit handler
-  $('.create-form').submit(function(e) {
-    e.preventDefault();
-
-    // re-validate before proceeding
-    if (!validateExpiration()) return;
-
-    const secret     = $('#secret-input').val().trim();
-    const slug       = $('#slug-input').val().trim();
-    const content    = $('#paste-content').val();
-    const expiration = $expiration.val().trim();
-    const password   = $('#password-input').val().trim(); 
-
-    $result
-      .removeClass('good bad')
-      .text('Checking credentials…');
-
-    // Step 1: Auth
-    $.ajax({
-      url: 'https://paste.peme969.dev/api/auth',
-      type: 'POST',
-      headers: { 'Authorization': 'Bearer ' + secret },
-      success() {
-        $result.text('Authorized! Creating paste…').addClass('good');
-
-        let payload = { text: content, expiration };
-        if (slug) payload.slug = slug;
-        if (password) payload.password = password;   
-        // Step 2: Create
-        $.ajax({
-          url: 'https://paste.peme969.dev/api/create',
-          type: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + secret,
-            'Content-Type': 'application/json'
-          },
-          data: JSON.stringify(payload),
-          success(res) {
-            $result
-              .html(
-                `✅ Paste created!<br>` +
-                `View paste: <a href="/api/view/${res.slug}" target="_blank">${res.slug}</a><br>` +
-                `Expires at: ${res.formattedExpiration}`
-              )
-              .addClass('good');
-          },
-          error(xhr) {
-            $result
-              .text('Error creating paste: ' + (xhr.responseJSON?.error || xhr.statusText))
-              .addClass('bad');
-          }
-        });
-      },
-      error(xhr) {
-        const msg = xhr.status === 401
-          ? 'Unauthorized! Wrong Secret Key.'
-          : 'Error authenticating. Please try again.';
-        $result.text(msg).addClass('bad');
-      }
-    });
-  });
-});
-
-
-
-            $('#mail').click(function() {
-                const email = "me@peme969.dev";
-                const subject = "Pastebin Key Request";
-                const body = `I would like a pastebin key because [enter reason here].%0A%0A` +
-                            `Methods of Verification:%0A` +
-                            `Github: Add 'key select' to your github bio and root README ` +
-                            `({github_username}/{github_username}) and attach the link here.%0A%0A` +
-                            `I, Peme969 will be asking you for more verifications in a follow-up email.`;
-                const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${body}`;
-                console.log(mailtoLink);
-                window.location.href = mailtoLink;
-            });
-
-            document.getElementById("palette-selector").addEventListener("change", function() {
-                let selectedPalette = this.value;
-                document.body.style.background = getComputedStyle(document.documentElement).getPropertyValue(`--${selectedPalette}-bg`);
-                document.body.style.color = getComputedStyle(document.documentElement).getPropertyValue(`--${selectedPalette}-text`);
-            });
+            // Theme logic (same as link shortener)
             const themeDict = {
-    "DarkSky": {
-        "bg": "--palette1-bg",
-        "text": "--palette1-text",
-        "title": "My Pastebin 🌙🌌"
-    },
-    "DeepOcean": {
-        "bg": "--palette3-bg",
-        "text": "--palette3-text",
-        "title": "My Pastebin 🌊"
-    }
-};
+                DarkSky: {
+                    bg: "--palette1-bg",
+                    text: "--palette1-text",
+                    hover: "--palette3-text",
+                    title: "My Pastebin 🌙🌌",
+                },
+                DeepOcean: {
+                    bg: "--palette3-bg",
+                    text: "--palette3-text",
+                    hover: "--palette1-text",
+                    title: "My Pastebin 🌊",
+                },
+            };
+            function applyTheme(theme) {
+                if (!themeDict[theme]) return;
+                const root = document.documentElement;
+                const def = themeDict[theme];
+                root.style.setProperty(
+                    "--dynamic-bg",
+                    getComputedStyle(root).getPropertyValue(def.bg),
+                );
+                root.style.setProperty(
+                    "--dynamic-text",
+                    getComputedStyle(root).getPropertyValue(def.text),
+                );
+                root.style.setProperty(
+                    "--hover-color",
+                    getComputedStyle(root).getPropertyValue(def.hover),
+                );
+                document.body.style.background = "var(--dynamic-bg)";
+                document.body.style.color = "var(--dynamic-text)";
+                document.title = def.title;
+                $("#palette-selector").val(theme);
+                localStorage.setItem("theme", theme);
+            }
+            $(function () {
+                const saved = localStorage.getItem("theme") || "DarkSky";
+                applyTheme(saved);
+                $("#palette-selector").on("change", function () {
+                    applyTheme(this.value);
+                });
+            });
 
+            // Tab switching
+            $(".tab").click(function () {
+                const target = $(this).data("target");
+                $(".tab").removeClass("active");
+                $(this).addClass("active");
+                $(".tab-content").removeClass("active");
+                $(target).addClass("active");
+            });
 
-$(document).ready(function () {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        applyTheme(savedTheme);
-    }
-});
-$('.palette-dropdown').on('change', function () {
-    const selectedTheme = $(this).val();
-    if (selectedTheme !== localStorage.getItem('theme')) {
-        applyTheme(selectedTheme);
-        localStorage.setItem('theme', selectedTheme);
-    }
-});
-function applyTheme(theme) {
-    if (!themeDict[theme]) return;
-    const root = document.documentElement;
-    $('.palette-dropdown').val(theme);
-    root.style.setProperty('--dynamic-bg', getComputedStyle(root).getPropertyValue(themeDict[theme].bg));
-    root.style.setProperty('--dynamic-text', getComputedStyle(root).getPropertyValue(themeDict[theme].text));
-    $('body').css({
-        'background': 'var(--dynamic-bg)',
-        'color': 'var(--dynamic-text)'
-    });
-    updateTitle(theme);
-}
-function updateTitle(theme) {
-    if (document.title !== themeDict[theme].title) {
-        document.title = themeDict[theme].title;
-    }
-}
+            // Create paste (unchanged)
+            (function () {
+                const $btn = $("#create"),
+                    $exp = $("#expiration-input"),
+                    $res = $("#result");
+                const expPattern = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} (AM|PM)$/;
+                function validate() {
+                    const val = $exp.val().trim();
+                    if (val && !expPattern.test(val)) {
+                        $res.text(
+                            "⚠️ Expiration must be YYYY-MM-DD hh:mm AM/PM",
+                        )
+                            .addClass("bad")
+                            .removeClass("good");
+                        $btn.prop("disabled", true);
+                        return false;
+                    }
+                    $res.text("").removeClass("bad good");
+                    $btn.prop("disabled", false);
+                    return true;
+                }
+                $exp.on("input", validate);
+                $(".create-form").submit(function (e) {
+                    e.preventDefault();
+                    if (!validate()) return;
+                    const secret = $("#secret-input").val().trim();
+                    const data = {
+                        text: $("#paste-content").val(),
+                        expiration: $exp.val().trim(),
+                    };
+                    if ($("#slug-input").val().trim())
+                        data.slug = $("#slug-input").val().trim();
+                    if ($("#password-input").val().trim())
+                        data.password = $("#password-input").val().trim();
+                    if (!secret) {
+                        $res.text("⚠️ Secret Key required").addClass("bad");
+                        return;
+                    }
+                    $res.removeClass("good bad").text("Creating paste…");
+                    $.ajax({
+                        url: "/api/create",
+                        type: "POST",
+                        headers: {
+                            Authorization: "Bearer " + secret,
+                            "Content-Type": "application/json",
+                        },
+                        data: JSON.stringify(data),
+                        success(res) {
+                            $res.html(
+                                `✅ Paste created!<br>Slug: <a href="/api/view/${res.slug}" target="_blank">${res.slug}</a><br>Expires: ${res.formattedExpiration}`,
+                            ).addClass("good");
+                        },
+                        error(xhr) {
+                            $res.text(
+                                "Error: " +
+                                    (xhr.responseJSON?.error || xhr.statusText),
+                            ).addClass("bad");
+                        },
+                    });
+                });
+            })();
 
+            // Manage pastes with content and view link
+            function loadPastes() {
+                const secret = $("#manage-secret").val().trim();
+                const $tbody = $("#pastes-table tbody"),
+                    $info = $("#manage-info");
+                $tbody.empty();
+                $info.text("Loading…");
+                $.ajax({
+                    url: "/api/pastes",
+                    type: "GET",
+                    headers: secret
+                        ? { Authorization: "Bearer " + secret }
+                        : {},
+                    success(pastes) {
+                        if (!pastes.length) {
+                            $info.text("No pastes found.");
+                            return;
+                        }
+                        pastes.forEach((p) => {
+                            const created = p.created;
+                            const expires = p.expiration || "—";
+                            const password = p.password ? p.password : "";
+                            // Fetch each paste's full content
+                            $.ajax({
+                                url: `/api/view/${p.slug}`,
+                                type: "GET",
+                                headers: password
+                                    ? { "X-Paste-Password": password }
+                                    : {},
+                                success(record) {
+                                    const content = record.text
+                                        .replace(/</g, "&lt;")
+                                        .replace(/>/g, "&gt;");
+                                    const viewLink = `<a href="/api/view/${p.slug}" target="_blank">View</a>`;
+                                    $tbody.append(`
+                  <tr>
+                    <td><a href="/api/view/${p.slug}" target="_blank">${p.slug}</a></td>
+                    <td>${created}</td>
+                    <td>${expires}</td>
+                    <td>${password || "—"}</td>
+                    <td><pre class="content-snippet">${content}</pre></td>
+                    <td>${viewLink}</td>
+                    <td><button class="btn delete" data-slug="${p.slug}">🗑️</button></td>
+                  </tr>
+                `);
+                                },
+                                error() {
+                                    // Could not fetch content
+                                    $tbody.append(`
+                  <tr>
+                    <td><a href="/api/view/${p.slug}" target="_blank">${p.slug}</a></td>
+                    <td>${created}</td>
+                    <td>${expires}</td>
+                    <td>${password || "—"}</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td><button class="btn delete" data-slug="${p.slug}">🗑️</button></td>
+                  </tr>
+                `);
+                                },
+                            });
+                        });
+                        $info.text(`Loaded ${pastes.length} paste(s).`);
+                    },
+                    error() {
+                        $info.text("Error loading pastes.");
+                    },
+                });
+            }
+            $("#load-pastes").click(loadPastes);
+
+            // Delete paste
+            $("#pastes-table").on("click", ".btn.delete", function () {
+                const slug = $(this).data("slug");
+                if (!confirm(`Delete paste “${slug}”?`)) return;
+                const secret = $("#manage-secret").val().trim();
+                $.ajax({
+                    url: "/api/delete",
+                    type: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(secret
+                            ? { Authorization: "Bearer " + secret }
+                            : {}),
+                    },
+                    data: JSON.stringify({ slug }),
+                    success() {
+                        loadPastes();
+                    },
+                    error() {
+                        alert("Delete failed");
+                    },
+                });
+            });
         </script>
-       </div>
     </body>
 </html>

@@ -1,295 +1,239 @@
-import html from './index.html';
-import docsHtml from './docs.html';
-import apiDocs from './api-docs.txt';
-import styleCss from './style.txt';
-import { DateTime } from 'luxon';
+import html from "./index.html";
+import docsHtml from "./docs.html";
+import styleCss from "./style.txt";
+import siteWebmanifest from "./site.webmanifest.txt";
+import faviconIco from "./favicon.ico.txt";
+import favicon16 from "./favicon-16x16.txt";
+import favicon32 from "./favicon-32x32.txt";
+import appleIcon from "./apple-touch-icon.txt";
+import androidChrome192 from "./android-chrome-192x192.txt";
+import androidChrome512 from "./android-chrome-512x512.txt";
+import { DateTime } from "luxon";
 
 export default {
   async fetch(request, env) {
+    const PASTES = env.Pastebin;
     const url = new URL(request.url);
-    const path = url.pathname;
-    const method = request.method;
-    const PASTEBIN_KV = env.Pastebin;
-    const API_SECRET = env.API_KEY;
-    const corsHeaders = getCORSHeaders();
+    const { pathname } = url;
 
-    // Handle CORS preflight
-    if (method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders });
+    // CORS preflight
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: getCORSHeaders() });
     }
 
     // Serve static assets
-    if (path === '/' || path === '') {
-      return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
+    if (pathname === "/") {
+      return new Response(html, {
+        headers: { "Content-Type": "text/html", ...getCORSHeaders() },
+      });
     }
-    if (path === '/docs' || path === '/docs/') {
-      return new Response(docsHtml, { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
+    if (pathname === "/docs") {
+      return new Response(docsHtml, {
+        headers: { "Content-Type": "text/html", ...getCORSHeaders() },
+      });
     }
-    if (path === '/style.css') {
-      return new Response(styleCss, { status: 200, headers: { 'Content-Type': 'text/css', ...corsHeaders } });
+    if (pathname === "/style.css") {
+      return new Response(styleCss, {
+        headers: { "Content-Type": "text/css", ...getCORSHeaders() },
+      });
+    }
+    if (pathname === "/site.webmanifest") {
+      return new Response(siteWebmanifest, {
+        headers: {
+          "Content-Type": "application/manifest+json",
+          ...getCORSHeaders(),
+        },
+      });
+    }
+    if (pathname === "/favicon.ico") {
+      return new Response(faviconIco, {
+        headers: { "Content-Type": "image/x-icon", ...getCORSHeaders() },
+      });
+    }
+    if (pathname === "/favicon-16x16.png") {
+      return new Response(favicon16, {
+        headers: { "Content-Type": "image/png", ...getCORSHeaders() },
+      });
+    }
+    if (pathname === "/favicon-32x32.png") {
+      return new Response(favicon32, {
+        headers: { "Content-Type": "image/png", ...getCORSHeaders() },
+      });
+    }
+    if (pathname === "/apple-touch-icon.png") {
+      return new Response(appleIcon, {
+        headers: { "Content-Type": "image/png", ...getCORSHeaders() },
+      });
+    }
+    if (pathname === "/android-chrome-192x192.png") {
+      return new Response(androidChrome192, {
+        headers: { "Content-Type": "image/png", ...getCORSHeaders() },
+      });
+    }
+    if (pathname === "/android-chrome-512x512.png") {
+      return new Response(androidChrome512, {
+        headers: { "Content-Type": "image/png", ...getCORSHeaders() },
+      });
     }
 
-    // API routes
-    if (path.startsWith('/api/')) {
-      // List all non-expired pastes
-      if (path === '/api/pastes' && method === 'GET') {
-        const ua = (request.headers.get('User-Agent') || '').toLowerCase();
-        const isCli = /curl|wget|httpie|python-requests|node-fetch|go-http-client/.test(ua);
+    // Load keys from KV
+    const apiKey = await PASTES.get("api_key");
+    const superKey = await PASTES.get("Super_Key");
 
-        const listResponse = await PASTEBIN_KV.list();
-        const now = Date.now();
+    // Create paste (super-secret key required)
+    if (pathname === "/api/create" && request.method === "POST") {
+      if (!isAuth(request, superKey)) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+        });
+      }
+      const {
+        slug: bodySlug,
+        text,
+        expiration,
+        password,
+      } = await request.json();
+      const slug = bodySlug || generateSlug();
+      const now = DateTime.utc();
+      const exp = expiration
+        ? DateTime.fromISO(expiration, { zone: "local" }).toUTC()
+        : null;
+      const metadata = {
+        created: now.toISO(),
+        expiration: exp ? exp.toISO() : null,
+        password: password || null,
+      };
+      const record = { text, metadata };
+      const options = {};
+      if (exp)
+        options.expirationTtl = Math.floor(exp.toSeconds() - now.toSeconds());
+      await PASTES.put(slug, JSON.stringify(record), options);
+      return new Response(
+        JSON.stringify({
+          slug,
+          formattedExpiration: metadata.expiration
+            ? DateTime.fromISO(metadata.expiration).toLocaleString(
+                DateTime.DATETIME_MED,
+              )
+            : null,
+        }),
+        {
+          headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+        },
+      );
+    }
 
-        const entries = await Promise.all(
-          listResponse.keys.map(async keyInfo => {
-            const slug = keyInfo.name;
-            const raw = await PASTEBIN_KV.get(slug);
-            if (!raw) return null;
-            const data = JSON.parse(raw);
-            if (data.metadata.expiresAtUtc <= now) {
-              await PASTEBIN_KV.delete(slug);
-              return null;
-            }
-            return {
-              slug,
-              text: data.text,
-              metadata: {
-                ...data.metadata,
-                expirationInSeconds: Math.floor((data.metadata.expiresAtUtc - now) / 1000)
-              }
-            };
-          })
-        );
-        const pastes = entries.filter(e => e);
-
-        if (isCli) {
-          return new Response(JSON.stringify(pastes), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    // View paste content
+    if (pathname.startsWith("/api/view/") && request.method === "GET") {
+      const slug = pathname.split("/api/view/")[1];
+      const stored = await PASTES.get(slug);
+      if (!stored) {
+        return new Response(JSON.stringify({ error: "Not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+        });
+      }
+      const record = JSON.parse(stored);
+      if (record.metadata.password) {
+        const pw = request.headers.get("X-Paste-Password");
+        if (pw !== record.metadata.password) {
+          return new Response(JSON.stringify({ error: "Password required" }), {
+            status: 401,
+            headers: {
+              "Content-Type": "application/json",
+              ...getCORSHeaders(),
+            },
           });
-        } else {
-          const listItems = pastes.map(p =>
-            `<li><a href="/api/view/${p.slug}">${p.slug}</a> — expires in ${p.metadata.expirationInSeconds}s</li>`
-          ).join('\n');
-
-          const body = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>All Pastes</title>
-</head>
-<body>
-  <h1>All Non-expired Pastes</h1>
-  <ul>
-    ${listItems}
-  </ul>
-</body>
-</html>`;
-
-          return new Response(body, {
-            status: 200,
-            headers: { 'Content-Type': 'text/html', ...corsHeaders }
-          });
         }
       }
-
-      // API docs
-      if (path === '/api/docs' || path === '/api/docs/') {
-        return new Response(apiDocs, { status: 200, headers: { 'Content-Type': 'text/markdown', ...corsHeaders } });
-      }
-
-      // Authentication
-      if (path === '/api/auth') {
-        const authHeader = request.headers.get('Authorization');
-        if (!authHeader || authHeader !== `Bearer ${API_SECRET}`) {
-          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-        }
-        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-      }
-
-      // Create paste (with optional password)
-      if (path === '/api/create' && method === 'POST') {
-        let raw;
-        try {
-          raw = await request.text();
-        } catch {
-          return new Response(JSON.stringify({ success: false, error: 'Invalid JSON body' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-        }
-        let body;
-        try {
-          const sanitized = raw.replace(/[“”]/g, '"');
-          body = JSON.parse(sanitized);
-        } catch (err) {
-          return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-        }
-        const { text, expiration, slug, password } = body;
-
-        const userTZ = (request.cf && request.cf.timezone) || 'America/Chicago';
-        const dtExpires = DateTime.fromFormat(expiration, 'yyyy-MM-dd hh:mm a', { zone: userTZ });
-        if (!dtExpires.isValid) {
-          return new Response(JSON.stringify({ success: false, error: 'Bad expiration format' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-        }
-        const expiresAtUtc = dtExpires.toUTC().toMillis();
-        const nowUtc = Date.now();
-        const expirationInSeconds = Math.max(0, Math.floor((expiresAtUtc - nowUtc) / 1000));
-        const formattedExpiration = dtExpires.setZone(userTZ).toLocaleString(DateTime.DATETIME_FULL);
-
-        const dtCreated = DateTime.fromMillis(nowUtc).setZone(userTZ);
-        const formattedCreated = dtCreated.toLocaleString(DateTime.DATETIME_FULL);
-        const tzAbbr = dtCreated.offsetNameShort;
-        const isDST = dtCreated.isInDST;
-        const generatedSlug = slug || generateRandomSlug();
-
-        await PASTEBIN_KV.put(
-          generatedSlug,
-          JSON.stringify({
-            text,
-            metadata: {
-              expiresAtUtc,
-              formattedExpiration,
-              formattedCreated,
-              tzAbbr,
-              isDST,
-              ...(password ? { password } : {})
-            }
-          })
-        );
-
-        return new Response(
-          JSON.stringify({ success: true, slug: generatedSlug, expirationInSeconds, formattedExpiration, formattedCreated, timezone: tzAbbr, isDST }),
-          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
-      }
-
-      // Delete paste
-      if (path === '/api/delete' && method === 'DELETE') {
-        const { slug } = await request.json();
-        if (!slug) {
-          return new Response(JSON.stringify({ success: false, error: 'Missing slug' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-        }
-        await PASTEBIN_KV.delete(slug);
-        return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-      }
-
-      // View paste JSON
-      if (path === '/api/view' && method === 'GET') {
-        const slug = url.searchParams.get('slug');
-        if (!slug) {
-          return new Response(JSON.stringify({ success: false, error: 'Missing slug' }), { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-        }
-        const raw = await PASTEBIN_KV.get(slug);
-        if (!raw) {
-          return new Response(JSON.stringify({ success: false, error: 'Not found' }), { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-        }
-        const data = JSON.parse(raw);
-        const nowUtc = Date.now();
-        if (nowUtc >= data.metadata.expiresAtUtc) {
-          await PASTEBIN_KV.delete(slug);
-          return new Response(JSON.stringify({ success: false, error: 'Expired' }), { status: 404,	headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-        }
-        const expirationInSeconds = Math.floor((data.metadata.expiresAtUtc - nowUtc) / 1000);
-        return new Response(JSON.stringify({ success: true, text: data.text, metadata: { ...data.metadata, expirationInSeconds } }), { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-      }
-
-      // View paste HTML with password protection
-      if (path.startsWith('/api/view/') && (method === 'GET' || method === 'POST')) {
-        const slug = path.replace('/api/view/', '');
-        const raw = await PASTEBIN_KV.get(slug);
-        if (!raw) return new Response('Not Found', { status: 404, headers: corsHeaders });
-        const data = JSON.parse(raw);
-        const nowUtc = Date.now();
-        if (nowUtc >= data.metadata.expiresAtUtc) {
-          await PASTEBIN_KV.delete(slug);
-          return new Response('Expired', { status: 404, headers: corsHeaders });
-        }
-        const pwd = data.metadata.password;
-        // No password, render immediately
-        if (!pwd) {
-          return new Response(renderPastePage(data.text, slug, data.metadata), { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
-        }
-        // GET → show unlock form
-        if (method === 'GET') {
-          return new Response(`<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Unlock Paste</title></head>
-<body>
-  <form method="POST">
-    <label>Password: <input name="password" type="password" required autofocus/></label>
-    <button type="submit">View Paste</button>
-  </form>
-</body>
-</html>`, { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
-        }
-        // POST → verify
-        const formData = await request.formData();
-        const attempt = formData.get('password') || '';
-        if (attempt !== pwd) {
-          return new Response(`<script>alert('Incorrect password');window.close();</script>`, { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
-        }
-        // Correct, render
-        return new Response(renderPastePage(data.text, slug, data.metadata), { status: 200, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
-      }
+      return new Response(JSON.stringify(record), {
+        headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+      });
     }
 
-    // Default HTML view → redirect to /api/view/:slug
-    if (method === 'GET') {
-      const slug = path.startsWith('/') ? path.slice(1) : path;
-      return Response.redirect(`${url.origin}/api/view/${slug}`, 307);
+    // List pastes: API key shows public only; Super key shows all
+    if (pathname === "/api/pastes" && request.method === "GET") {
+      const hasApi = isAuth(request, apiKey);
+      const hasSuper = isAuth(request, superKey);
+      if (!hasApi && !hasSuper) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+        });
+      }
+      const list = await PASTES.list();
+      const now = DateTime.utc();
+      const result = [];
+      for (const { name } of list.keys) {
+        const stored = await PASTES.get(name);
+        if (!stored) continue;
+        const record = JSON.parse(stored);
+        if (
+          record.metadata.expiration &&
+          now > DateTime.fromISO(record.metadata.expiration)
+        )
+          continue;
+        if (record.metadata.password && !hasSuper) continue;
+        const entry = {
+          slug: name,
+          created: DateTime.fromISO(record.metadata.created).toLocaleString(
+            DateTime.DATETIME_MED,
+          ),
+          expiration: record.metadata.expiration
+            ? DateTime.fromISO(record.metadata.expiration).toLocaleString(
+                DateTime.DATETIME_MED,
+              )
+            : null,
+        };
+        if (hasSuper) entry.password = record.metadata.password;
+        result.push(entry);
+      }
+      return new Response(JSON.stringify(result), {
+        headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+      });
     }
 
-    return new Response('Not Found', { status: 404, headers: corsHeaders });
+    // Delete paste (super-secret key required)
+    if (pathname === "/api/delete" && request.method === "DELETE") {
+      if (!isAuth(request, superKey)) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+        });
+      }
+      const { slug } = await request.json();
+      await PASTES.delete(slug);
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+      });
+    }
+
+    // Fallback
+    return new Response(JSON.stringify({ error: "Not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json", ...getCORSHeaders() },
+    });
   },
 };
 
 // Helpers
 function getCORSHeaders() {
   return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Max-Age': '86400',
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "Authorization, Content-Type, X-Paste-Password",
+    "Access-Control-Max-Age": "86400",
   };
 }
 
-function generateRandomSlug() {
-  return [...Array(6)].map(() => Math.random().toString(36)[2]).join('');
+function isAuth(request, key) {
+  return request.headers.get("Authorization") === `Bearer ${key}`;
 }
 
-function renderPastePage(text, slug, metadata) {
-  const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const metaInline = `Created: ${metadata.formattedCreated} | Expires at: ${metadata.formattedExpiration}`;
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Paste: ${slug}</title>
-  <link rel="stylesheet" href="/style.css">
-  <style>
-    pre code {
-      background-color: #607D8B;
-      padding: 1em;
-      display: block;
-      margin: 1em auto;
-      border-radius: 4px;
-      white-space: pre-wrap;
-      width: 50%;
-      max-height: 70vh; overflow: auto;
-    }
-    code {
-      background-color: #607D8B;
-      padding: 0.2em 0.4em;
-      border-radius: 3px;
-    }
-      
-  </style>
-</head>
-<body>
-  <article>
-    <h1>Paste: ${slug}</h1>
-    <p><code>${metaInline}</code></p>
-    <pre><code>${escaped}</code></pre>
-  </article>
-</body>
-</html>`;
+function generateSlug() {
+  return Array.from({ length: 6 }, () => Math.random().toString(36)[2]).join(
+    "",
+  );
 }
