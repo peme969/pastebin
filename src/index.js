@@ -229,6 +229,7 @@ function getCORSHeaders() {
 }
 
 function isAuth(request, key) {
+  if (!key) return false;
   return request.headers.get("Authorization") === `Bearer ${key}`;
 }
 
