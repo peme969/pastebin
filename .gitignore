@@ -1,2 +1,4 @@
 node_modules
 .gmap/cache.db
+src/.DS_Store
+.DS_Store
