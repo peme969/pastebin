@@ -13,12 +13,12 @@ https://pastebin.peme969.dev
 
 ## 🔐 Authentication
 
-All `/api/*` routes require a **Bearer Token**:
+Authentication uses **Bearer** tokens:
 
-**Header:**
-```http
-Authorization: Bearer <API_KEY>
-```
+- `Authorization: Bearer <API_KEY>` for read-only endpoints
+- `Authorization: Bearer <SUPER_KEY>` for administrative actions
+
+`GET /api/view/:slug` is public unless the paste is password protected.
 
 ---
 
@@ -49,7 +49,7 @@ curl https://pastebin.peme969.dev/
 Create a new paste.
 
 **Headers:**
-- `Authorization: Bearer <API_KEY>`
+- `Authorization: Bearer <SUPER_KEY>`
 - `Content-Type: application/json`
 
 **Body:**
@@ -57,7 +57,7 @@ Create a new paste.
 {
   "text": "Hello, world!",
   "password": "mypassword",                // Optional
-  "expiration": "2025-08-01 12:00 PM",     // Optional CST format
+  "expiration": "2025-08-01T12:00:00",     // Optional ISO-8601
   "slug": "customid"                       // Optional
 }
 ```
@@ -65,33 +65,32 @@ Create a new paste.
 **Response:**
 ```json
 {
-  "success": true,
   "slug": "customid",
-  "expirationInSeconds": 86400,
-  "formattedExpiration": "2025-08-01 12:00 PM CST"
+  "formattedExpiration": "Aug 1, 2025, 12:00 PM"
 }
 ```
 
 **Example:**
 ```bash
 curl -X POST https://pastebin.peme969.dev/api/create \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer YOUR_SUPER_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"text":"My paste","expiration":"2025-08-01 10:00 AM","password":"1234"}'
+  -d '{"text":"My paste","expiration":"2025-08-01T10:00:00","password":"1234"}'
 ```
 
 ---
 
-### `GET /api/view`
+### `GET /api/pastes`
 
-List all valid (non-expired) pastes.
+List pastes.
 
 **Headers:**
-- `Authorization: Bearer <API_KEY>`
+- `Authorization: Bearer <API_KEY>` for public pastes
+- `Authorization: Bearer <SUPER_KEY>` to include password-protected ones
 
 **Example:**
 ```bash
-curl -H "Authorization: Bearer YOUR_API_KEY" https://pastebin.peme969.dev/api/view
+curl -H "Authorization: Bearer YOUR_API_KEY" https://pastebin.peme969.dev/api/pastes
 ```
 
 **Response:**
@@ -99,15 +98,13 @@ curl -H "Authorization: Bearer YOUR_API_KEY" https://pastebin.peme969.dev/api/vi
 [
   {
     "slug": "abc123",
-    "metadata": {
-      "password": null,
-      "expirationInSeconds": 3600,
-      "formattedExpiration": "2025-08-01 12:00 PM CST",
-      "createdAt": "2025-07-28 07:30 AM CST"
-    }
+    "created": "Jul 28, 2025, 7:30 AM",
+    "expiration": "Aug 1, 2025, 12:00 PM"
   }
 ]
 ```
+
+When using the super key, each entry may also include a `password` field.
 
 ---
 
@@ -120,22 +117,21 @@ Fetch a specific paste.
 {
   "text": "Hello, world!",
   "metadata": {
-    "password": null,
-    "expirationInSeconds": 3600,
-    "formattedExpiration": "2025-08-01 12:00 PM CST",
-    "createdAt": "2025-07-28 07:30 AM CST"
+    "created": "2025-07-28T07:30:00.000Z",
+    "expiration": "2025-08-01T17:00:00.000Z",
+    "password": null
   }
 }
 ```
 
 **Note:** If password-protected, include:
 ```http
-Authorization: Bearer <password>
+X-Paste-Password: <password>
 ```
 
 **Example:**
 ```bash
-curl -H "Authorization: Bearer 1234" https://pastebin.peme969.dev/api/view/my-paste
+curl -H "X-Paste-Password: 1234" https://pastebin.peme969.dev/api/view/my-paste
 ```
 
 ---
@@ -145,7 +141,7 @@ curl -H "Authorization: Bearer 1234" https://pastebin.peme969.dev/api/view/my-pa
 Delete a paste by slug.
 
 **Headers:**
-- `Authorization: Bearer <API_KEY>`
+- `Authorization: Bearer <SUPER_KEY>`
 - `Content-Type: application/json`
 
 **Body:**
@@ -161,7 +157,7 @@ Delete a paste by slug.
 **Example:**
 ```bash
 curl -X DELETE https://pastebin.peme969.dev/api/delete \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Authorization: Bearer YOUR_SUPER_KEY" \
   -H "Content-Type: application/json" \
   -d '{"slug":"abc123"}'
 ```
@@ -201,10 +197,10 @@ curl -H "Authorization: Bearer YOUR_API_KEY" https://pastebin.peme969.dev/api/au
 
 ## ⚠️ Expiration Format
 
-Use CST format:
+Use ISO-8601 strings in your local time zone:
 
 ```
-YYYY-MM-DD hh:mm AM/PM
+YYYY-MM-DDTHH:mm:ss
 ```
 
 ---
@@ -228,10 +224,9 @@ YYYY-MM-DD hh:mm AM/PM
 {
   "text": "Secret note here...",
   "metadata": {
-    "password": "optional",
-    "expirationInSeconds": 3600,
-    "formattedExpiration": "2025-08-01 12:00 PM CST",
-    "createdAt": "2025-07-28 08:00 AM CST"
+    "created": "2025-07-28T08:00:00.000Z",
+    "expiration": "2025-08-01T12:00:00.000Z",
+    "password": "optional"
   }
 }
 ```
